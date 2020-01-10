@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.com/dariober/fxstat.svg?branch=master)](https://travis-ci.com/dariober/fxstat)
-
+![Language](https://img.shields.io/badge/language-C-blue.svg)
 
 <!-- vim-markdown-toc GFM -->
 
