@@ -1,0 +1,259 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - gcov.info - src/fxstat.c</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - fxstat.c<span style="font-size: 80%;"> (source / <a href="fxstat.c.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">gcov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">80</td>
+            <td class="headerCovTableEntry">94</td>
+            <td class="headerCovTableEntryMed">85.1 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-01-10 10:22:15</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : #include &lt;stdio.h&gt;</a>
+<span class="lineNum">       2 </span>            : #include &lt;stdlib.h&gt;
+<span class="lineNum">       3 </span>            : #include &lt;unistd.h&gt;
+<span class="lineNum">       4 </span>            : #include &lt;time.h&gt;
+<a name="5"><span class="lineNum">       5 </span>            : #include &quot;utils.h&quot;</a>
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span><span class="lineCov">         16 : int main(int argc, char *argv[])</span>
+<span class="lineNum">       8 </span>            : {
+<span class="lineNum">       9 </span><span class="lineCov">         16 :     time_t t0 = time(NULL);</span>
+<span class="lineNum">      10 </span>            :     
+<span class="lineNum">      11 </span>            :     // Default arguments 
+<span class="lineNum">      12 </span><span class="lineCov">         16 :     char *version = &quot;0.1.0&quot;;</span>
+<span class="lineNum">      13 </span><span class="lineCov">         16 :     int nx_cutoff = 50;</span>
+<span class="lineNum">      14 </span><span class="lineCov">         16 :     char *infile = &quot;-&quot;;</span>
+<span class="lineNum">      15 </span><span class="lineCov">         16 :     int seed = 0;</span>
+<span class="lineNum">      16 </span><span class="lineCov">         16 :     long max_bases_in_reservoir = 25000000;</span>
+<span class="lineNum">      17 </span>            : 
+<span class="lineNum">      18 </span>            :     int index;
+<span class="lineNum">      19 </span>            :     int opt;
+<span class="lineNum">      20 </span><span class="lineCov">         16 :     opterr = 0;</span>
+<span class="lineNum">      21 </span>            : 
+<span class="lineNum">      22 </span><span class="lineCov">         32 :     while ((opt = getopt (argc, argv, &quot;N:hV&quot;)) != -1)</span>
+<span class="lineNum">      23 </span><span class="lineCov">          4 :         switch (opt)</span>
+<span class="lineNum">      24 </span>            :         {
+<span class="lineNum">      25 </span><span class="lineNoCov">          0 :             case 'N':</span>
+<span class="lineNum">      26 </span><span class="lineNoCov">          0 :                 nx_cutoff = atoi(optarg);</span>
+<span class="lineNum">      27 </span><span class="lineNoCov">          0 :                 break;</span>
+<span class="lineNum">      28 </span><span class="lineCov">          2 :             case 'V':</span>
+<span class="lineNum">      29 </span><span class="lineCov">          2 :                 printf(&quot;%s\n&quot;, version);</span>
+<span class="lineNum">      30 </span><span class="lineCov">          6 :                 return 0;</span>
+<span class="lineNum">      31 </span><span class="lineCov">          2 :             case 'h':</span>
+<span class="lineNum">      32 </span><span class="lineCov">          2 :                 printf(&quot;Usage: fxstat [OPTION] ... [FILE]\n&quot;);</span>
+<span class="lineNum">      33 </span><span class="lineCov">          2 :                 printf(&quot;Collect sequence statistics from fastq file\n&quot;);</span>
+<span class="lineNum">      34 </span><span class="lineCov">          2 :                 printf(&quot;\n&quot;);</span>
+<span class="lineNum">      35 </span><span class="lineCov">          2 :                 printf(&quot;  -N  value for Nx statistics [%d]\n&quot;, nx_cutoff);</span>
+<span class="lineNum">      36 </span>            :                 //printf(&quot;  -s  seed for sampling. 0 for random seed [%d]\n&quot;, seed);
+<span class="lineNum">      37 </span>            :                 //printf(&quot;  -b  number of bases for sample statistics to hold in memory [%ld]\n&quot;, max_bases_in_reservoir);
+<span class="lineNum">      38 </span><span class="lineCov">          2 :                 printf(&quot;  -V  print version\n&quot;);</span>
+<span class="lineNum">      39 </span><span class="lineCov">          2 :                 printf(&quot;\n&quot;);</span>
+<span class="lineNum">      40 </span><span class="lineCov">          2 :                 printf(&quot;With no FILE, or when FILE is -, read standard input\n&quot;);</span>
+<span class="lineNum">      41 </span><span class="lineCov">          2 :                 printf(&quot;\n&quot;);</span>
+<span class="lineNum">      42 </span><span class="lineCov">          2 :                 printf(&quot;Version %s\n&quot;, version);</span>
+<span class="lineNum">      43 </span><span class="lineCov">          2 :                 return 0;</span>
+<span class="lineNum">      44 </span><span class="lineNoCov">          0 :             case '?':</span>
+<span class="lineNum">      45 </span><span class="lineNoCov">          0 :                 if (optopt == 'N' || optopt == 's'){</span>
+<span class="lineNum">      46 </span><span class="lineNoCov">          0 :                     fprintf (stderr, &quot;Option -%c requires an argument.\n&quot;, optopt);</span>
+<span class="lineNum">      47 </span>            :                 } else {
+<span class="lineNum">      48 </span><span class="lineNoCov">          0 :                     fprintf (stderr, &quot;Unknown option `-%c'\n&quot;, optopt);</span>
+<span class="lineNum">      49 </span>            :                 }
+<span class="lineNum">      50 </span>            :             default:
+<span class="lineNum">      51 </span><span class="lineNoCov">          0 :                 return 1;</span>
+<span class="lineNum">      52 </span>            :         }
+<span class="lineNum">      53 </span>            : 
+<span class="lineNum">      54 </span><span class="lineCov">         20 :     for(index = optind; index &lt; argc; index++){</span>
+<span class="lineNum">      55 </span><span class="lineCov">          8 :         infile = argv[index];</span>
+<span class="lineNum">      56 </span>            :     }
+<span class="lineNum">      57 </span>            : 
+<span class="lineNum">      58 </span><span class="lineCov">         12 :     if(nx_cutoff &lt; 0 || nx_cutoff &gt; 100){</span>
+<span class="lineNum">      59 </span><span class="lineNoCov">          0 :         fprintf(stderr, &quot;Argument to -N must be &gt;= 0 and &lt;= 100. Got %d\n&quot;, nx_cutoff);</span>
+<span class="lineNum">      60 </span><span class="lineNoCov">          0 :         return 1;</span>
+<span class="lineNum">      61 </span>            :     }
+<span class="lineNum">      62 </span>            : 
+<span class="lineNum">      63 </span><span class="lineCov">         12 :     FILE *fh = NULL;</span>
+<span class="lineNum">      64 </span><span class="lineCov">         12 :     if(strcmp(infile, &quot;-&quot;) == 0){</span>
+<span class="lineNum">      65 </span><span class="lineCov">          4 :         fh = stdin;</span>
+<span class="lineNum">      66 </span>            :     } else {
+<span class="lineNum">      67 </span><span class="lineCov">          8 :         fh = fopen(infile, &quot;r&quot;);</span>
+<span class="lineNum">      68 </span><span class="lineCov">          8 :         if( access(infile, R_OK) == -1 ){</span>
+<span class="lineNum">      69 </span><span class="lineNoCov">          0 :             fprintf(stderr, &quot;File '%s' not found or not readable\n&quot;, infile);</span>
+<span class="lineNum">      70 </span><span class="lineNoCov">          0 :             return 1;</span>
+<span class="lineNum">      71 </span>            :         }
+<span class="lineNum">      72 </span>            :     }
+<span class="lineNum">      73 </span>            :     
+<span class="lineNum">      74 </span><span class="lineCov">         12 :     if(seed == 0){</span>
+<span class="lineNum">      75 </span><span class="lineCov">         12 :         srand(time(0) + getpid());</span>
+<span class="lineNum">      76 </span>            :     } else {
+<span class="lineNum">      77 </span><span class="lineNoCov">          0 :         srand(seed);</span>
+<span class="lineNum">      78 </span>            :     }
+<span class="lineNum">      79 </span>            : 
+<span class="lineNum">      80 </span><span class="lineCov">         12 :     struct int_count *len_histogram = NULL;</span>
+<span class="lineNum">      81 </span>            : 
+<span class="lineNum">      82 </span><span class="lineCov">         12 :     struct actg_count nt_counter = {.A = 0, .C = 0, .G = 0, .T = 0, .N = 0, .warns = 0, .MAX_WARN = 20};</span>
+<span class="lineNum">      83 </span>            : 
+<span class="lineNum">      84 </span>            :     struct sequence_record *rec; 
+<span class="lineNum">      85 </span><span class="lineCov">         12 :     rec = malloc(sizeof(struct sequence_record));</span>
+<span class="lineNum">      86 </span>            : 
+<span class="lineNum">      87 </span><span class="lineCov">         12 :     long n_seq = 0;</span>
+<span class="lineNum">      88 </span><span class="lineCov">         12 :     long n_bases = 0;</span>
+<span class="lineNum">      89 </span><span class="lineCov">         12 :     float sum_read_quality = 0;</span>
+<span class="lineNum">      90 </span>            :     char *fasta_sequence_name;
+<span class="lineNum">      91 </span><span class="lineCov">         12 :     fasta_sequence_name = calloc(10, 1);</span>
+<span class="lineNum">      92 </span><span class="lineCov">         12 :     char record_type = 'u'; </span>
+<span class="lineNum">      93 </span>            : 
+<span class="lineNum">      94 </span><span class="lineCov">         96 :     while(next_record(rec, fh, &amp;record_type, &amp;fasta_sequence_name) == 0) {</span>
+<span class="lineNum">      95 </span><span class="lineCov">         72 :         n_seq += 1;</span>
+<span class="lineNum">      96 </span><span class="lineCov">         72 :         if(n_seq % 1000000 == 0){</span>
+<span class="lineNum">      97 </span><span class="lineNoCov">          0 :             fprintf(stderr, &quot;%ld reads processed\n&quot;, n_seq);</span>
+<span class="lineNum">      98 </span>            :         }
+<span class="lineNum">      99 </span><span class="lineCov">         72 :         count_nt(rec-&gt;sequence, &amp;nt_counter);</span>
+<span class="lineNum">     100 </span>            :         
+<span class="lineNum">     101 </span><span class="lineCov">         72 :         if(record_type == 'q'){</span>
+<span class="lineNum">     102 </span><span class="lineCov">         58 :             sum_read_quality += mean_quality(rec-&gt;quality, 33);</span>
+<span class="lineNum">     103 </span>            :         }
+<span class="lineNum">     104 </span>            : 
+<span class="lineNum">     105 </span><span class="lineCov">         72 :         n_bases += rec-&gt;len;</span>
+<span class="lineNum">     106 </span><span class="lineCov">         72 :         increment_int_count(rec-&gt;len, &amp;len_histogram);</span>
+<span class="lineNum">     107 </span>            :         
+<span class="lineNum">     108 </span><span class="lineCov">         72 :         free(rec-&gt;name);</span>
+<span class="lineNum">     109 </span><span class="lineCov">         72 :         free(rec-&gt;sequence);</span>
+<span class="lineNum">     110 </span><span class="lineCov">         72 :         free(rec-&gt;quality);</span>
+<span class="lineNum">     111 </span>            :     } 
+<span class="lineNum">     112 </span><span class="lineCov">         12 :     fclose(fh);</span>
+<span class="lineNum">     113 </span><span class="lineCov">         12 :     free(rec); </span>
+<span class="lineNum">     114 </span><span class="lineCov">         12 :     free(fasta_sequence_name);</span>
+<span class="lineNum">     115 </span>            : 
+<span class="lineNum">     116 </span><span class="lineCov">         12 :     HASH_SORT(len_histogram, compare);</span>
+<span class="lineNum">     117 </span>            : 
+<span class="lineNum">     118 </span>            :     /*Collect stats*/
+<span class="lineNum">     119 </span>            : 
+<span class="lineNum">     120 </span><span class="lineCov">         12 :     long nx_mass = 0;</span>
+<span class="lineNum">     121 </span><span class="lineCov">         12 :     int nx = -1;</span>
+<span class="lineNum">     122 </span><span class="lineCov">         12 :     float nx_target = n_bases * ((float) nx_cutoff / 100);</span>
+<span class="lineNum">     123 </span><span class="lineCov">         12 :     int max_len = len_histogram-&gt;id;</span>
+<span class="lineNum">     124 </span>            :    
+<span class="lineNum">     125 </span>            :     struct int_count *s;
+<span class="lineNum">     126 </span><span class="lineCov">         52 :     for(s = len_histogram; s != NULL; s = s-&gt;hh.next) {</span>
+<span class="lineNum">     127 </span><span class="lineCov">         40 :         nx_mass += (s-&gt;id) * (s-&gt;count); </span>
+<span class="lineNum">     128 </span><span class="lineCov">         40 :         if(nx_mass &gt;= nx_target &amp;&amp; nx &lt; 0){</span>
+<span class="lineNum">     129 </span><span class="lineCov">         12 :             nx = s-&gt;id;</span>
+<span class="lineNum">     130 </span>            :         }
+<span class="lineNum">     131 </span>            :     }
+<span class="lineNum">     132 </span>            : 
+<span class="lineNum">     133 </span><span class="lineCov">         12 :     delete_hash_table(&amp;len_histogram);</span>
+<span class="lineNum">     134 </span>            : 
+<span class="lineNum">     135 </span><span class="lineCov">         12 :     time_t t1= time(NULL);</span>
+<span class="lineNum">     136 </span>            :     
+<span class="lineNum">     137 </span><span class="lineCov">         12 :     printf(&quot;n_seq\t%ld\n&quot;, n_seq);</span>
+<span class="lineNum">     138 </span><span class="lineCov">         12 :     printf(&quot;n_bases\t%ld\n&quot;, n_bases);</span>
+<span class="lineNum">     139 </span><span class="lineCov">         12 :     printf(&quot;max_length\t%d\n&quot;, max_len);</span>
+<span class="lineNum">     140 </span><span class="lineCov">         12 :     printf(&quot;mean_length\t%.2f\n&quot;, (float) n_bases / n_seq);</span>
+<span class="lineNum">     141 </span><span class="lineCov">         12 :     printf(&quot;N%d\t%d\n&quot;, nx_cutoff, nx);</span>
+<span class="lineNum">     142 </span><span class="lineCov">         12 :     printf(&quot;A\t%.2f%%\n&quot;, (float) 100 * nt_counter.A / n_bases);</span>
+<span class="lineNum">     143 </span><span class="lineCov">         12 :     printf(&quot;T\t%.2f%%\n&quot;, (float) 100 * nt_counter.T / n_bases);</span>
+<span class="lineNum">     144 </span><span class="lineCov">         12 :     printf(&quot;C\t%.2f%%\n&quot;, (float) 100 * nt_counter.C / n_bases);</span>
+<span class="lineNum">     145 </span><span class="lineCov">         12 :     printf(&quot;G\t%.2f%%\n&quot;, (float) 100 * nt_counter.G / n_bases);</span>
+<span class="lineNum">     146 </span><span class="lineCov">         12 :     printf(&quot;N\t%.2f%%\n&quot;, (float) 100 * nt_counter.N / n_bases);</span>
+<span class="lineNum">     147 </span><span class="lineCov">         12 :     printf(&quot;CG\t%.2f%%\n&quot;, (float) 100 * (nt_counter.G + nt_counter.C) / n_bases);</span>
+<span class="lineNum">     148 </span><span class="lineCov">         12 :     printf(&quot;mean_read_quality\t%.2f\n&quot;, sum_read_quality / n_seq);</span>
+<span class="lineNum">     149 </span>            : 
+<span class="lineNum">     150 </span>            :     // printf(&quot;# Sampled %d reads (%ld bases)\n&quot;, reads_in_reservoir, bases_in_reservoir);
+<span class="lineNum">     151 </span><span class="lineCov">         12 :     fprintf(stderr, &quot;# Proc time %s\n&quot;, format_seconds(t1-t0));</span>
+<span class="lineNum">     152 </span>            : 
+<span class="lineNum">     153 </span>            : }
+<span class="lineNum">     154 </span>            :         /* Reservoir sampling 
+<span class="lineNum">     155 </span>            :          * We start by filling up the reservoir by counting the number of
+<span class="lineNum">     156 </span>            :          * bases in it, not the number of sequences. We assume that in
+<span class="lineNum">     157 </span>            :          * terms of length distribution the first reads are representative
+<span class="lineNum">     158 </span>            :          * of the whole population.
+<span class="lineNum">     159 </span>            :          *
+<span class="lineNum">     160 </span>            :          * Once the reservoir is full, we use the number of sequences in it
+<span class="lineNum">     161 </span>            :          * to drive the sampling.
+<span class="lineNum">     162 </span>            :          *
+<span class="lineNum">     163 </span>            :          * */
+<span class="lineNum">     164 </span>            :         /*
+<span class="lineNum">     165 </span>            :         if(bases_in_reservoir &lt; max_bases_in_reservoir){
+<span class="lineNum">     166 </span>            :             char **temp = realloc(reservoir, (reads_in_reservoir + 1) * sizeof(char*)); 
+<span class="lineNum">     167 </span>            :             if(temp == NULL){
+<span class="lineNum">     168 </span>            :                 fprintf(stderr, &quot;Failed to allocate memory\n&quot;);
+<span class="lineNum">     169 </span>            :                 exit(1);
+<span class="lineNum">     170 </span>            :             }
+<span class="lineNum">     171 </span>            :             reservoir = temp;
+<span class="lineNum">     172 </span>            :             reservoir[reads_in_reservoir] = malloc((rec.len + 1) * sizeof(char));
+<span class="lineNum">     173 </span>            :             strcpy(reservoir[reads_in_reservoir], rec.sequence);
+<span class="lineNum">     174 </span>            :             
+<span class="lineNum">     175 </span>            :             reads_in_reservoir += 1;
+<span class="lineNum">     176 </span>            :             bases_in_reservoir += rec.len;
+<span class="lineNum">     177 </span>            :         } else {
+<span class="lineNum">     178 </span>            :             int j = rand() % n_seq; // Random int in range [0, n_seq]
+<span class="lineNum">     179 </span>            :             if(j &lt;= reads_in_reservoir){
+<span class="lineNum">     180 </span>            :                 reservoir[j] = strdup(rec.sequence);
+<span class="lineNum">     181 </span>            :             }
+<span class="lineNum">     182 </span>            :         }
+<span class="lineNum">     183 </span>            :         */
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

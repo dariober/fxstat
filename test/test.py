@@ -110,7 +110,7 @@ if __name__ == '__main__':
             p.communicate()
             p= sp.Popen('lcov --capture --directory . --output-file gcov.info', shell= True, stdout= sp.PIPE, stderr= sp.PIPE)
             p.communicate()
-            p= sp.Popen('genhtml gcov.info --output-directory ../../code_coverage', shell= True, stdout= sp.PIPE, stderr= sp.PIPE)
+            p= sp.Popen('genhtml gcov.info --output-directory ../code_coverage', shell= True, stdout= sp.PIPE, stderr= sp.PIPE)
             p.communicate()
         except:
             print('Error performing code coverage')

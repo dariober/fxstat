@@ -20,6 +20,9 @@ gcc -g src/fxstat.c src/utils.c -o fxstat
 
 Then move the `fxstat` executable to a directory of your choice like `$HOME/bin/`.
 
+If you are on a Unix system, all the requirements should be satisfied as fxstat
+depends only on gcc for compilation and standard C libraries.
+
 Usage
 =====
 
@@ -34,14 +37,28 @@ cat reads.fastq | fxstat
 Unit tests and code coverage
 ============================
 
-Run tests:
+To run tests:
 
 ```
 cd test
 python test.py
 ```
 
-Code coverage report will be in [code_coverage](https://htmlpreview.github.io/?https://github.com/dariober/fxstat/blob/master/code_coverage/index.html).
+Code coverage report will be in [test/code_coverage](https://htmlpreview.github.io/?https://github.com/dariober/fxstat/blob/master/test/code_coverage/index.html).
+
+Requirements for running the test suite:
+
+* [python](https://www.python.org/) should be available on virtually every system
+
+* [valgrind](https://valgrind.org/) for checking memory leaks. If not
+  available, install it with any package manager like `apt` or
+  [conda](https://anaconda.org/conda-forge/valgrind)
+
+* [lcov](https://github.com/linux-test-project/lcov) for code coverage report.
+  As above, install with a package manager or
+  [conda](https://anaconda.org/conda-forge/lcov)
+
+There are tests to check for memory leaks using valgrind. Please check 
 
 To compute code coverage you need
 [lcov](https://github.com/linux-test-project/lcov). It can be installed
