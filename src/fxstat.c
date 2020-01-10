@@ -13,7 +13,6 @@ int main(int argc, char *argv[])
     int nx_cutoff = 50;
     char *infile = "-";
     int seed = 0;
-    long max_bases_in_reservoir = 25000000;
 
     int index;
     int opt;
@@ -38,6 +37,7 @@ int main(int argc, char *argv[])
                 printf("  -V  print version\n");
                 printf("\n");
                 printf("With no FILE, or when FILE is -, read standard input\n");
+                printf("Base qualities must be in phred scale. There is no check for that!\n");
                 printf("\n");
                 printf("Version %s\n", version);
                 return 0;
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
         count_nt(rec->sequence, &nt_counter);
         
         if(record_type == 'q'){
-            sum_read_quality += mean_quality(rec->quality, 33);
+            sum_read_quality += mean_quality(rec->quality);
         }
 
         n_bases += rec->len;

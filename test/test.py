@@ -30,17 +30,23 @@ class Fqstat(unittest.TestCase):
         self.assertTrue(len(stdout) >=5)
 
     def testBasicFastq(self):
-        p= sp.Popen('./fxstat ../test_data/basic.fq',
+        p= sp.Popen('./fxstat ../data/basic.fq',
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
         stdout, stderr= p.communicate()
         self.assertEqual(0, p.returncode)
         self.assertTrue('n_seq\t9\n' in stdout.decode())
         self.assertTrue('mean_length\t28.33\n' in stdout.decode())
         self.assertTrue('n_bases\t255\n' in stdout.decode())
-        self.assertTrue('mean_read_quality\t39.49\n' in stdout.decode())
+
+    def testBaseQualityStats(self):
+        p= sp.Popen('head -n 4 ../data/quality.fq | ./fxstat',
+                shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdout, stderr= p.communicate()
+        self.assertEqual(0, p.returncode)
+        self.assertTrue('mean_read_quality\t3.59\n' in stdout.decode())
 
     def testBasicFastqNucPercent(self):
-        p= sp.Popen('./fxstat ../test_data/basic.fq',
+        p= sp.Popen('./fxstat ../data/basic.fq',
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
         stdout, stderr= p.communicate()
         self.assertEqual(0, p.returncode)
@@ -49,14 +55,14 @@ class Fqstat(unittest.TestCase):
         self.assertTrue('N\t1.18' in stdout.decode())
 
     def testMemoryLeakFastQ(self):
-        p= sp.Popen('valgrind --leak-check=full ./fxstat ../test_data/basic.fq',
+        p= sp.Popen('valgrind --leak-check=full ./fxstat ../data/basic.fq',
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
         stdout, stderr= p.communicate()
         self.assertEqual(0, p.returncode)
         self.assertTrue('All heap blocks were freed' in stderr.decode())
         self.assertTrue('ERROR SUMMARY: 0 errors' in stderr.decode())
 
-        p= sp.Popen('head -n 4 ../test_data/basic.fq | valgrind ./fxstat',
+        p= sp.Popen('head -n 4 ../data/basic.fq | valgrind ./fxstat',
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
         stdout, stderr= p.communicate()
         self.assertEqual(0, p.returncode)
@@ -64,19 +70,25 @@ class Fqstat(unittest.TestCase):
         self.assertTrue('ERROR SUMMARY: 0 errors' in stderr.decode())
 
     def testMemoryLeakFastA(self):
-        p= sp.Popen('valgrind --leak-check=full ./fxstat ../test_data/basic.fa',
+        p= sp.Popen('valgrind --leak-check=full ./fxstat ../data/basic.fa',
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
         stdout, stderr= p.communicate()
         self.assertEqual(0, p.returncode)
         self.assertTrue('All heap blocks were freed' in stderr.decode())
         self.assertTrue('ERROR SUMMARY: 0 errors' in stderr.decode())
 
-        p= sp.Popen('head -n 4 ../test_data/basic.fq | valgrind ./fxstat',
+        p= sp.Popen('head -n 4 ../data/basic.fq | valgrind ./fxstat',
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
         stdout, stderr= p.communicate()
         self.assertEqual(0, p.returncode)
         self.assertTrue('All heap blocks were freed' in stderr.decode())
         self.assertTrue('ERROR SUMMARY: 0 errors' in stderr.decode())
+
+    def testCompileWithoutWarnings(self):
+        p= sp.Popen('gcc -Wall ../../src/fxstat.c ../../src/utils.c -o test_fxstat',
+                shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdout, stderr= p.communicate()
+        self.assertEqual('', stderr.decode())
 
     def testZeroLengthRead(self):
         pass 

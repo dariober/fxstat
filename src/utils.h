@@ -35,7 +35,7 @@ int compare(const void *a, const void *b);
 
 void count_nt(char *seq, struct actg_count *counter);
 
-float mean_quality(char *sequence, int offset);
+float mean_quality(char *sequence);
 
 char* format_seconds(int seconds);
 
