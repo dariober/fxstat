@@ -1,0 +1,21 @@
+>chr1_foobarspam
+actactacatcatacaG
+actactacatcatacaG
+>chr2_baz
+ATATATATATATATATATATG
+>chr3_XXXXXXXXXXXXXXXXXXXXXXXXXXX_END
+CTCTCTCTCCG
+>chr4
+AAAAAAAAAAAAAAAAAAAAAAAG
+>chr5
+TTTTTTTTTTTTTTTTTTTTTTTTTTG
+;comment here
+>chr6
+    ; comment there
+GGGGGGGCCCCCCCCG
+;
+GGGGGGGCCCCCCCCG
+       
+>chr7
+gggggggccccccccg
+gggggggccccccccg
