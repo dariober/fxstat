@@ -111,7 +111,7 @@ class Fqstat(unittest.TestCase):
         p= sp.Popen('head -n 4 ../data/basic.fq | valgrind ./fxstat',
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
         stdout, stderr= p.communicate()
-        self.assertEqual(100, p.returncode)
+        self.assertEqual(0, p.returncode)
         self.assertTrue('All heap blocks were freed' in stderr.decode())
         self.assertTrue('ERROR SUMMARY: 0 errors' in stderr.decode())
 

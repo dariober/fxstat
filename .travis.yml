@@ -8,7 +8,7 @@ compiler:
   -  gcc
 
 before_install:
-  - sudo apt-get -y install valgrind
+  - sudo apt-get -y install valgrind lcov
 
 script:
   - gcc -O3 -Wall -g src/fxstat.c src/utils.c -o fxstat
