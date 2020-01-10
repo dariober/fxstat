@@ -1,24 +1,29 @@
 <!-- vim-markdown-toc GFM -->
 
-* [Compile](#compile)
+* [Compile and setup](#compile-and-setup)
 * [Usage](#usage)
-* [Run unit tests and compute test code coverage](#run-unit-tests-and-compute-test-code-coverage)
+* [Unit tests and code coverage](#unit-tests-and-code-coverage)
 
 <!-- vim-markdown-toc -->
 
 Fast and easy stats for FASTA and FASTQ files
 
-Compile
-=======
+Compile and setup
+=================
+
+Assuming you are in the root directory of this project (i.e. where this README
+file is), compile the fxstat executable with:
 
 ```
 gcc -g src/fxstat.c src/utils.c -o fxstat
 ```
 
+Then move the `fxstat` executable to a directory of your choice like `$HOME/bin/`.
+
 Usage
 =====
 
-Usage should be straightforward:
+Usage should be straightforward. Assuming `fxstat` is on your `PATH` (if not, use `path/to/fxstat`):
 
 ```
 fxstat -h
@@ -26,8 +31,8 @@ fxstat reads.fastq
 cat reads.fastq | fxstat
 ```
 
-Run unit tests and compute test code coverage
-=============================================
+Unit tests and code coverage
+============================
 
 Run tests:
 
