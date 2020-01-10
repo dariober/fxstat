@@ -1,1 +1,2 @@
-code_coverage/* linguist-documentation
+*.html linguist-vendored
+*.css linguist-vendored
