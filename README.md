@@ -24,7 +24,7 @@ cd test
 python test.py
 ```
 
-Code coverage report will be in `test/code_coverage`.
+Code coverage report will be in [code_coverage](code_coverage/index.html).
 
 To compute code coverage you need
 [lcov](https://github.com/linux-test-project/lcov). It can be installed
