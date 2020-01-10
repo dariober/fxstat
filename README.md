@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.com/dariober/fxstat.svg?branch=master)](https://travis-ci.com/dariober/fxstat)
+
+
 <!-- vim-markdown-toc GFM -->
 
 * [Compile and setup](#compile-and-setup)
