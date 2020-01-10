@@ -308,8 +308,10 @@ int next_record(struct sequence_record *rec, FILE *fh, char *record_type, char *
                 exit(1); 
             } 
             rec->name = strdup(line);
-
-            getline(&line, &len, fh);    // Sequence
+            
+            int p = 0;
+            
+            p = getline(&line, &len, fh);    // Sequence
             line[strcspn(line, "\n\r")] = '\0';
             rec->len = strlen(line);
             if((rec->len + 1) > mseq){
@@ -317,15 +319,17 @@ int next_record(struct sequence_record *rec, FILE *fh, char *record_type, char *
             }
             strcpy(rec->sequence, line);
 
-            getline(&line, &len, fh);    // Comment (ignored)
+            p= getline(&line, &len, fh);    // Comment (ignored)
 
-            getline(&line, &len, fh);    // Quality
+            p= getline(&line, &len, fh);    // Quality
+            if(p == -1){
+                fprintf(stderr, "\nWarning: Fastq file may be truncated!\n\n");
+            }
             line[strcspn(line, "\n\r")] = '\0';
             if((rec->len + 1) > mseq){
                 rec->quality = (char*) realloc(rec->quality, rec->len + 1);
             }
             strcpy(rec->quality, line);
-
             break;
         } else {
             // FASTA READER

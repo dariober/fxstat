@@ -54,6 +54,30 @@ class Fqstat(unittest.TestCase):
         self.assertTrue('CG\t37.25' in stdout.decode())
         self.assertTrue('N\t1.18' in stdout.decode())
 
+    def testLongRead(self):
+        p= sp.Popen('./fxstat ../data/long.fq',
+                shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdout, stderr= p.communicate()
+        self.assertEqual(0, p.returncode)
+
+    def testWriteToFile(self):
+        p= sp.Popen('./fxstat ../data/basic.fq -o out.txt',
+                shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdout, stderr= p.communicate()
+        self.assertEqual(0, p.returncode)
+        self.assertTrue(os.path.getsize('out.txt') > 20);
+
+        p= sp.Popen('./fxstat ../data/basic.fq -o -',
+                shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdout, stderr= p.communicate()
+        self.assertEqual(0, p.returncode)
+        self.assertTrue(len(stdout.decode()) > 20)
+
+        p= sp.Popen('./fxstat ../data/basic.fq -o foobar/out.txt',
+                shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdout, stderr= p.communicate()
+        self.assertTrue(p.returncode != 0)
+
     def testMemoryLeakFastQ(self):
         p= sp.Popen('valgrind --leak-check=full ./fxstat ../data/basic.fq',
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
@@ -63,6 +87,13 @@ class Fqstat(unittest.TestCase):
         self.assertTrue('ERROR SUMMARY: 0 errors' in stderr.decode())
 
         p= sp.Popen('head -n 4 ../data/basic.fq | valgrind ./fxstat',
+                shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdout, stderr= p.communicate()
+        self.assertEqual(0, p.returncode)
+        self.assertTrue('All heap blocks were freed' in stderr.decode())
+        self.assertTrue('ERROR SUMMARY: 0 errors' in stderr.decode())
+
+        p= sp.Popen('cat ../data/long.fq ../data/long.fq ../data/long.fq | valgrind ./fxstat',
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
         stdout, stderr= p.communicate()
         self.assertEqual(0, p.returncode)
@@ -85,7 +116,7 @@ class Fqstat(unittest.TestCase):
         self.assertTrue('ERROR SUMMARY: 0 errors' in stderr.decode())
 
     def testCompileWithoutWarnings(self):
-        p= sp.Popen('gcc -Wall ../../src/fxstat.c ../../src/utils.c -o test_fxstat',
+        p= sp.Popen('gcc -O3 -Wall ../../src/fxstat.c ../../src/utils.c -o test_fxstat',
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
         stdout, stderr= p.communicate()
         self.assertEqual('', stderr.decode())

@@ -1,0 +1,8 @@
+language: 
+  - c
+
+compiler: 
+  -  gcc
+
+script:
+  - gcc -O3 -Wall -g src/fxstat.c src/utils.c -o fxstat

@@ -12,17 +12,21 @@ int main(int argc, char *argv[])
     char *version = "0.1.0";
     int nx_cutoff = 50;
     char *infile = "-";
-    int seed = 0;
+    char *outfile = "-";
+    // int seed = 0;
 
     int index;
     int opt;
     opterr = 0;
 
-    while ((opt = getopt (argc, argv, "N:hV")) != -1)
+    while ((opt = getopt (argc, argv, "N:hVo:")) != -1)
         switch (opt)
         {
             case 'N':
                 nx_cutoff = atoi(optarg);
+                break;
+            case 'o':
+                outfile = optarg;
                 break;
             case 'V':
                 printf("%s\n", version);
@@ -32,6 +36,7 @@ int main(int argc, char *argv[])
                 printf("Collect sequence statistics from fastq file\n");
                 printf("\n");
                 printf("  -N  value for Nx statistics [%d]\n", nx_cutoff);
+                printf("  -o  output file [%s]\n", outfile);
                 //printf("  -s  seed for sampling. 0 for random seed [%d]\n", seed);
                 //printf("  -b  number of bases for sample statistics to hold in memory [%ld]\n", max_bases_in_reservoir);
                 printf("  -V  print version\n");
@@ -42,7 +47,7 @@ int main(int argc, char *argv[])
                 printf("Version %s\n", version);
                 return 0;
             case '?':
-                if (optopt == 'N' || optopt == 's'){
+                if (optopt == 'N' || optopt == 's' || optopt == 'o'){
                     fprintf (stderr, "Option -%c requires an argument.\n", optopt);
                 } else {
                     fprintf (stderr, "Unknown option `-%c'\n", optopt);
@@ -64,18 +69,18 @@ int main(int argc, char *argv[])
     if(strcmp(infile, "-") == 0){
         fh = stdin;
     } else {
-        fh = fopen(infile, "r");
         if( access(infile, R_OK) == -1 ){
             fprintf(stderr, "File '%s' not found or not readable\n", infile);
             return 1;
         }
+        fh = fopen(infile, "r");
     }
     
-    if(seed == 0){
-        srand(time(0) + getpid());
-    } else {
-        srand(seed);
-    }
+    //if(seed == 0){
+    //    srand(time(0) + getpid());
+    //} else {
+    //    srand(seed);
+    //}
 
     struct int_count *len_histogram = NULL;
 
@@ -134,22 +139,32 @@ int main(int argc, char *argv[])
 
     time_t t1= time(NULL);
     
-    printf("n_seq\t%ld\n", n_seq);
-    printf("n_bases\t%ld\n", n_bases);
-    printf("max_length\t%d\n", max_len);
-    printf("mean_length\t%.2f\n", (float) n_bases / n_seq);
-    printf("N%d\t%d\n", nx_cutoff, nx);
-    printf("A\t%.2f%%\n", (float) 100 * nt_counter.A / n_bases);
-    printf("T\t%.2f%%\n", (float) 100 * nt_counter.T / n_bases);
-    printf("C\t%.2f%%\n", (float) 100 * nt_counter.C / n_bases);
-    printf("G\t%.2f%%\n", (float) 100 * nt_counter.G / n_bases);
-    printf("N\t%.2f%%\n", (float) 100 * nt_counter.N / n_bases);
-    printf("CG\t%.2f%%\n", (float) 100 * (nt_counter.G + nt_counter.C) / n_bases);
-    printf("mean_read_quality\t%.2f\n", sum_read_quality / n_seq);
+    FILE *fout;
+    if(strcmp(outfile, "-") == 0){
+        fout = stdout;
+    } else {
+        fout = fopen(outfile, "w");
+        if(access(outfile, W_OK) == -1){
+            fprintf(stderr, "Unable to write to '%s'\n", outfile);
+            return 1;
+        }
+    }
+    
+    fprintf(fout, "n_seq\t%ld\n", n_seq);
+    fprintf(fout, "n_bases\t%ld\n", n_bases);
+    fprintf(fout, "max_length\t%d\n", max_len);
+    fprintf(fout, "mean_length\t%.2f\n", (float) n_bases / n_seq);
+    fprintf(fout, "N%d\t%d\n", nx_cutoff, nx);
+    fprintf(fout, "A\t%.2f%%\n", (float) 100 * nt_counter.A / n_bases);
+    fprintf(fout, "T\t%.2f%%\n", (float) 100 * nt_counter.T / n_bases);
+    fprintf(fout, "C\t%.2f%%\n", (float) 100 * nt_counter.C / n_bases);
+    fprintf(fout, "G\t%.2f%%\n", (float) 100 * nt_counter.G / n_bases);
+    fprintf(fout, "N\t%.2f%%\n", (float) 100 * nt_counter.N / n_bases);
+    fprintf(fout, "CG\t%.2f%%\n", (float) 100 * (nt_counter.G + nt_counter.C) / n_bases);
+    fprintf(fout, "mean_read_quality\t%.2f\n", sum_read_quality / n_seq);
+    fclose(fout);
 
-    // printf("# Sampled %d reads (%ld bases)\n", reads_in_reservoir, bases_in_reservoir);
     fprintf(stderr, "# Proc time %s\n", format_seconds(t1-t0));
-
 }
         /* Reservoir sampling 
          * We start by filling up the reservoir by counting the number of
