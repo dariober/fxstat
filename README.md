@@ -34,7 +34,7 @@ Usage should be straightforward. Assuming `fxstat` is on your `PATH` (if not, us
 
 ```
 fxstat -h
-fxstat reads.fastq
+fxstat reads.fastq.gz
 cat reads.fastq | fxstat
 ```
 
@@ -61,10 +61,3 @@ Requirements for running the test suite:
 * [lcov](https://github.com/linux-test-project/lcov) for code coverage report.
   As above, install with a package manager or
   [conda](https://anaconda.org/conda-forge/lcov)
-
-There are tests to check for memory leaks using valgrind. Please check 
-
-To compute code coverage you need
-[lcov](https://github.com/linux-test-project/lcov). It can be installed
-with your package manager (e.g., for Ubuntu `sudo apt-get install lcov`) or with
-[conda](https://anaconda.org/conda-forge/lcov).
