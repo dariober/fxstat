@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "utils.h"
+#include <zlib.h>
 
 // Conversion from Phred score to probability
 static const float PHRED_PROB[] = {
@@ -135,6 +136,38 @@ static const float PHRED_PROB[] = {
     2.511886431509582e-13,
     1.9952623149688827e-13};
 
+char * zgetline(gzFile fh, char **line){
+    int buffer_size = 1000;
+    int line_length = buffer_size;
+
+    *line = (char*) realloc(*line, buffer_size);
+    if(*line == NULL){
+        fprintf(stderr, "Failed to allocate memory for line of length %d\n", buffer_size);
+        exit(1);
+    }
+    int pos = 0;
+    char buffer[buffer_size];
+    char *eof;
+    while( (eof = gzgets(fh, buffer, buffer_size)) ){
+        int len = strlen(buffer);
+        if((pos + len + 1) >= line_length){
+            line_length *= 2;
+            *line = (char*) realloc(*line, line_length);
+            if(*line == NULL){
+                fprintf(stderr, "Failed to allocate memory for line of length %d\n", line_length);
+                exit(1);
+            }
+        }
+        memcpy((*line)+pos, buffer, len);
+        pos += len;
+        if(buffer[len-1] == '\n'){
+            break;
+        } 
+    }
+    (*line)[pos] = '\0';
+    return eof;
+}
+
 void increment_int_count(int id, struct int_count **counter) {
     struct int_count *s;
     HASH_FIND_INT(*counter, &id, s);  /* id already in the hash? */
@@ -175,8 +208,8 @@ int compare(const void *a, const void *b)
 
 void count_nt(char *seq, struct actg_count *counter)
 {
-    int seq_len = strlen(seq);
-    for(int i = 0; i < seq_len; i++){
+    int i = 0;
+    while(seq[i] != '\0'){
         char nuc = toupper(seq[i]);
         if(nuc == 'A'){
             counter->A += 1;
@@ -202,6 +235,7 @@ void count_nt(char *seq, struct actg_count *counter)
             }
             counter->N += 1;
         }
+        i++;
     }
 }
 
@@ -209,18 +243,17 @@ void count_nt(char *seq, struct actg_count *counter)
  * http://www.machinedlearnings.com/2011/06/fast-approximate-logarithm-exponential.html
  * */
 float fastlog10 (float x) {
-  union { float f; uint32_t i; } vx = { x };
-  union { uint32_t i; float f; } mx = { (vx.i & 0x007FFFFF) | (0x7e << 23) };
-  float y = vx.i;
-  y *= 1.0 / (1 << 23);
+    union { float f; uint32_t i; } vx = { x };
+    union { uint32_t i; float f; } mx = { (vx.i & 0x007FFFFF) | (0x7e << 23) };
+    float y = vx.i;
+    y *= 1.0 / (1 << 23);
  
-  // log2(x):
-  float l2 =  y - 124.22544637f - 1.498030302f * mx.f - 1.72587999f / (0.3520887068f + mx.f);
-  // Convert log2 to log10. The constant 0.301 comes from log10(x) / log2(x)
-  return 0.301029995f * l2;
+    float log_2 =  y - 124.22544637f - 1.498030302f * mx.f - 1.72587999f / (0.3520887068f + mx.f);
+    // Convert log2 to log10. The constant 0.301 comes from log10(n) / log2(x)
+    return 0.301029995f * log_2;
 }
 
-/* Qualities are in phred scale (loig scale) so we cannot directly average
+/* Qualities are in phred scale (log scale) so we cannot directly average
  * them.  We need to convert to probabilities, average, convert back to phred.
  * See also https://gigabaseorgigabyte.wordpress.com/2017/06/26/averaging-basecall-quality-scores-the-right-way/
  * */
@@ -266,11 +299,10 @@ int is_blank(char *x){
     return 1;
 }
 
-int next_record(struct sequence_record *rec, FILE *fh, char *record_type, char **sequence_name){
+int next_record(struct sequence_record *rec, gzFile fh, char *record_type, char **sequence_name){
     int eof = 0;
     int add_fasta_name = 1;
     char *line = NULL;
-    size_t len = 0;
     int mseq = 10000;
     rec->sequence = (char*)malloc(mseq);
     rec->quality = (char*)malloc(mseq);
@@ -278,7 +310,7 @@ int next_record(struct sequence_record *rec, FILE *fh, char *record_type, char *
     rec->len = 0;
 
     while(1){
-        if(getline(&line, &len, fh) == -1){
+        if(zgetline(fh, &line) == 0){
             if(rec->len == 0){
                 free(rec->sequence);
                 free(rec->quality);
@@ -287,7 +319,7 @@ int next_record(struct sequence_record *rec, FILE *fh, char *record_type, char *
             break;
         }
 
-        line[strcspn(line, "\n\r")] = '\0';
+        line[strcspn(line, "\n\r")] = '\0'; /* Strip trailing newline */
         
         if(is_blank(line)){
             continue;
@@ -309,9 +341,9 @@ int next_record(struct sequence_record *rec, FILE *fh, char *record_type, char *
             } 
             rec->name = strdup(line);
             
-            int p = 0;
+            char *p;
             
-            p = getline(&line, &len, fh);    // Sequence
+            p = zgetline(fh, &line);    // Sequence
             line[strcspn(line, "\n\r")] = '\0';
             rec->len = strlen(line);
             if((rec->len + 1) > mseq){
@@ -319,10 +351,10 @@ int next_record(struct sequence_record *rec, FILE *fh, char *record_type, char *
             }
             strcpy(rec->sequence, line);
 
-            p= getline(&line, &len, fh);    // Comment (ignored)
+            p= zgetline(fh, &line);    // Comment (ignored)
 
-            p= getline(&line, &len, fh);    // Quality
-            if(p == -1){
+            p= zgetline(fh, &line);    // Quality
+            if(p == 0){
                 fprintf(stderr, "\nWarning: Fastq file may be truncated!\n\n");
             }
             line[strcspn(line, "\n\r")] = '\0';

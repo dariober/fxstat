@@ -1,5 +1,6 @@
 #ifndef UTILS
 #define UTILS
+#include <zlib.h>
 #include "uthash.h"
 
 struct int_count {
@@ -43,7 +44,7 @@ int is_fasta_comment(char *x);
 
 // int is_blank(char *x);
 
-int next_record(struct sequence_record *rec, FILE *fh, char *record_type, char **sequence_name);
+int next_record(struct sequence_record *rec, gzFile fh, char *record_type, char **sequence_name);
 
 int next_fasta_record(struct sequence_record *rec, FILE *fh, char **sequence_name);
 

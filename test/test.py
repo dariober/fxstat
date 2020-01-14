@@ -60,6 +60,13 @@ class Fqstat(unittest.TestCase):
         stdout, stderr= p.communicate()
         self.assertEqual(0, p.returncode)
 
+    def testGzipStdin(self):
+        p= sp.Popen('gzip -c ../data/long.fq | ./fxstat',
+                shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdout, stderr= p.communicate()
+        self.assertEqual(0, p.returncode)
+        self.assertTrue('n_bases\t40000\n' in stdout.decode())
+
     def testWriteToFile(self):
         p= sp.Popen('./fxstat ../data/basic.fq -o out.txt',
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
@@ -116,13 +123,17 @@ class Fqstat(unittest.TestCase):
         self.assertTrue('ERROR SUMMARY: 0 errors' in stderr.decode())
 
     def testCompileWithoutWarnings(self):
-        p= sp.Popen('gcc -O3 -Wall ../../src/fxstat.c ../../src/utils.c -o test_fxstat',
+        p= sp.Popen('gcc -O3 -Wall ../../src/fxstat.c ../../src/utils.c -lz -o test_fxstat',
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
         stdout, stderr= p.communicate()
         self.assertEqual('', stderr.decode())
 
     def testZeroLengthRead(self):
         pass 
+    def testTruncatedGZip(self):
+        pass
+    def testUnrecognizedInputError(self):
+        pass
 
 if __name__ == '__main__':
     # Set up
@@ -133,7 +144,7 @@ if __name__ == '__main__':
     os.makedirs('out')
     os.chdir('out') # NB we are in 'out'
 
-    p= sp.Popen('gcc -fprofile-arcs -ftest-coverage -g ../../src/fxstat.c ../../src/utils.c -o fxstat',
+    p= sp.Popen('gcc -fprofile-arcs -ftest-coverage -g ../../src/fxstat.c ../../src/utils.c -lz -o fxstat',
             shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
     stdout, stderr= p.communicate()
     if p.returncode != 0:

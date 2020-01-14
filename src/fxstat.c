@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
+#include <zlib.h>
 #include "utils.h"
 
 int main(int argc, char *argv[])
@@ -33,7 +34,7 @@ int main(int argc, char *argv[])
                 return 0;
             case 'h':
                 printf("Usage: fxstat [OPTION] ... [FILE]\n");
-                printf("Collect sequence statistics from fastq file\n");
+                printf("Collect sequence statistics from fastq/fasta file\n");
                 printf("\n");
                 printf("  -N  value for Nx statistics [%d]\n", nx_cutoff);
                 printf("  -o  output file [%s]\n", outfile);
@@ -41,8 +42,10 @@ int main(int argc, char *argv[])
                 //printf("  -b  number of bases for sample statistics to hold in memory [%ld]\n", max_bases_in_reservoir);
                 printf("  -V  print version\n");
                 printf("\n");
-                printf("With no FILE, or when FILE is -, read standard input\n");
-                printf("Base qualities must be in phred scale. There is no check for that!\n");
+                printf("\
+With no FILE, or when FILE is -, read standard input.\n\
+Input may be gzip'd compressed. Base qualities must\n\
+be in phred scale. There is no check for that!\n");
                 printf("\n");
                 printf("Version %s\n", version);
                 return 0;
@@ -64,23 +67,19 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Argument to -N must be >= 0 and <= 100. Got %d\n", nx_cutoff);
         return 1;
     }
-
-    FILE *fh = NULL;
+    
+    int err;
+    FILE *stream = NULL;
     if(strcmp(infile, "-") == 0){
-        fh = stdin;
+        stream = stdin;
     } else {
         if( access(infile, R_OK) == -1 ){
             fprintf(stderr, "File '%s' not found or not readable\n", infile);
             return 1;
         }
-        fh = fopen(infile, "r");
+        stream = fopen(infile, "r");
     }
-    
-    //if(seed == 0){
-    //    srand(time(0) + getpid());
-    //} else {
-    //    srand(seed);
-    //}
+    gzFile fh = gzdopen(fileno(stream), "r");
 
     struct int_count *len_histogram = NULL;
 
@@ -114,10 +113,15 @@ int main(int argc, char *argv[])
         free(rec->sequence);
         free(rec->quality);
     } 
-    fclose(fh);
+    const char *err_msg = gzerror(fh, &err);
+    if(strlen(err_msg) > 0){
+        fprintf(stderr, "Error: %s\n", err_msg);
+    }
+    fclose(stream);
+    gzclose(fh);
     free(rec); 
     free(fasta_sequence_name);
-
+    
     HASH_SORT(len_histogram, compare);
 
     /*Collect stats*/
@@ -149,7 +153,7 @@ int main(int argc, char *argv[])
             return 1;
         }
     }
-    
+
     fprintf(fout, "n_seq\t%ld\n", n_seq);
     fprintf(fout, "n_bases\t%ld\n", n_bases);
     fprintf(fout, "max_length\t%d\n", max_len);
@@ -165,6 +169,7 @@ int main(int argc, char *argv[])
     fclose(fout);
 
     fprintf(stderr, "# Proc time %s\n", format_seconds(t1-t0));
+    return err;
 }
         /* Reservoir sampling 
          * We start by filling up the reservoir by counting the number of
