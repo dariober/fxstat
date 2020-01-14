@@ -1,5 +1,6 @@
 ![Language](https://img.shields.io/badge/language-C-blue.svg)
 [![Build Status](https://travis-ci.com/dariober/fxstat.svg?branch=master)](https://travis-ci.com/dariober/fxstat)
+[![Test coverage](https://img.shields.io/badge/coverage-gcov-grey.svg)](https://htmlpreview.github.io/?https://github.com/dariober/fxstat/blob/master/test/code_coverage/index.html)
 
 <!-- vim-markdown-toc GFM -->
 
