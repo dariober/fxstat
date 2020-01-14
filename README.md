@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.com/dariober/fxstat.svg?branch=master)](https://travis-ci.com/dariober/fxstat)
 ![Language](https://img.shields.io/badge/language-C-blue.svg)
+[![Build Status](https://travis-ci.com/dariober/fxstat.svg?branch=master)](https://travis-ci.com/dariober/fxstat)
 
 <!-- vim-markdown-toc GFM -->
 
@@ -18,7 +18,7 @@ Assuming you are in the root directory of this project (i.e. where this README
 file is), compile the fxstat executable with:
 
 ```
-gcc -O3 -Wall -g src/fxstat.c src/utils.c -o fxstat
+gcc -O3 -Wall -g src/fxstat.c src/utils.c -lz -o fxstat
 ```
 
 Then move the `fxstat` executable to a directory of your choice like `$HOME/bin/`.
