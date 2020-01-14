@@ -38,6 +38,13 @@ class Fqstat(unittest.TestCase):
         self.assertTrue('mean_length\t28.33\n' in stdout.decode())
         self.assertTrue('n_bases\t255\n' in stdout.decode())
 
+    def testStopAfter(self):
+        p= sp.Popen('./fxstat -s 5 ../data/basic.fq',
+                shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdout, stderr= p.communicate()
+        self.assertEqual(0, p.returncode)
+        self.assertTrue('n_seq\t5\n' in stdout.decode())
+
     def testBaseQualityStats(self):
         p= sp.Popen('head -n 4 ../data/quality.fq | ./fxstat',
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)

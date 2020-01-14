@@ -14,15 +14,19 @@ int main(int argc, char *argv[])
     int nx_cutoff = 50;
     char *infile = "-";
     char *outfile = "-";
+    int n_stop = -1;
     // int seed = 0;
 
     int index;
     int opt;
     opterr = 0;
 
-    while ((opt = getopt (argc, argv, "N:hVo:")) != -1)
+    while ((opt = getopt (argc, argv, "s:N:hVo:")) != -1)
         switch (opt)
         {
+            case 's':
+                n_stop = atoi(optarg);
+                break;
             case 'N':
                 nx_cutoff = atoi(optarg);
                 break;
@@ -36,6 +40,7 @@ int main(int argc, char *argv[])
                 printf("Usage: fxstat [OPTION] ... [FILE]\n");
                 printf("Collect sequence statistics from fastq/fasta file\n");
                 printf("\n");
+                printf("  -s  Stop after this many sequences [%d]\n", n_stop);
                 printf("  -N  value for Nx statistics [%d]\n", nx_cutoff);
                 printf("  -o  output file [%s]\n", outfile);
                 //printf("  -s  seed for sampling. 0 for random seed [%d]\n", seed);
@@ -112,6 +117,10 @@ be in phred scale. There is no check for that!\n");
         free(rec->name);
         free(rec->sequence);
         free(rec->quality);
+
+        if(n_stop > 0 && n_seq >= n_stop){
+            break;
+        }
     } 
     const char *err_msg = gzerror(fh, &err);
     if(strlen(err_msg) > 0){
@@ -154,18 +163,18 @@ be in phred scale. There is no check for that!\n");
         }
     }
 
-    fprintf(fout, "n_seq\t%ld\n", n_seq);
-    fprintf(fout, "n_bases\t%ld\n", n_bases);
-    fprintf(fout, "max_length\t%d\n", max_len);
-    fprintf(fout, "mean_length\t%.2f\n", (float) n_bases / n_seq);
-    fprintf(fout, "N%d\t%d\n", nx_cutoff, nx);
-    fprintf(fout, "A\t%.2f%%\n", (float) 100 * nt_counter.A / n_bases);
-    fprintf(fout, "T\t%.2f%%\n", (float) 100 * nt_counter.T / n_bases);
-    fprintf(fout, "C\t%.2f%%\n", (float) 100 * nt_counter.C / n_bases);
-    fprintf(fout, "G\t%.2f%%\n", (float) 100 * nt_counter.G / n_bases);
-    fprintf(fout, "N\t%.2f%%\n", (float) 100 * nt_counter.N / n_bases);
-    fprintf(fout, "CG\t%.2f%%\n", (float) 100 * (nt_counter.G + nt_counter.C) / n_bases);
-    fprintf(fout, "mean_read_quality\t%.2f\n", sum_read_quality / n_seq);
+    fprintf(fout, "n_seq              %ld\n", n_seq);
+    fprintf(fout, "n_bases            %ld\n", n_bases);
+    fprintf(fout, "max_length         %d\n", max_len);
+    fprintf(fout, "mean_length        %.2f\n", (float) n_bases / n_seq);
+    fprintf(fout, "mean_read_quality  %.2f\n", sum_read_quality / n_seq);
+    fprintf(fout, "N%d                %d\n", nx_cutoff, nx);
+    fprintf(fout, "A                  %.2f%%\n", (float) 100 * nt_counter.A / n_bases);
+    fprintf(fout, "T                  %.2f%%\n", (float) 100 * nt_counter.T / n_bases);
+    fprintf(fout, "C                  %.2f%%\n", (float) 100 * nt_counter.C / n_bases);
+    fprintf(fout, "G                  %.2f%%\n", (float) 100 * nt_counter.G / n_bases);
+    fprintf(fout, "N                  %.2f%%\n", (float) 100 * nt_counter.N / n_bases);
+    fprintf(fout, "CG                 %.2f%%\n", (float) 100 * (nt_counter.G + nt_counter.C) / n_bases);
     fclose(fout);
 
     fprintf(stderr, "# Proc time %s\n", format_seconds(t1-t0));
