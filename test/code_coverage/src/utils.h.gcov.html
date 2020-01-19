@@ -1,0 +1,343 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - gcov.info - src/utils.h</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - utils.h<span style="font-size: 80%;"> (source / <a href="utils.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">gcov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">66</td>
+            <td class="headerCovTableEntry">66</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-01-19 17:32:52</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">13</td>
+            <td class="headerCovTableEntry">13</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : #include &lt;stdio.h&gt;</a>
+<span class="lineNum">       2 </span>            : #include &lt;ctype.h&gt; 
+<span class="lineNum">       3 </span>            : #include &lt;stdlib.h&gt;
+<span class="lineNum">       4 </span>            : #include &lt;string.h&gt;
+<span class="lineNum">       5 </span>            : #include &lt;zlib.h&gt;
+<span class="lineNum">       6 </span>            : #include &lt;stdint.h&gt;
+<span class="lineNum">       7 </span>            : #include &quot;khash.h&quot;
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : #ifndef UTILS
+<a name="10"><span class="lineNum">      10 </span>            : #define UTILS</a>
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span><span class="lineCov">        424 : KHASH_MAP_INIT_INT(int2long, long)  // instantiate structs and methods</span>
+<span class="lineNum">      13 </span>            :                                      // with int key and long value
+<span class="lineNum">      14 </span>            : struct int_count {
+<span class="lineNum">      15 </span>            :     int id;
+<span class="lineNum">      16 </span>            :     long count;
+<span class="lineNum">      17 </span>            : };
+<span class="lineNum">      18 </span>            : 
+<span class="lineNum">      19 </span>            : // Conversion from Phred score to probability
+<span class="lineNum">      20 </span>            : static const float PHRED_PROB[] = {
+<span class="lineNum">      21 </span>            :     1.0,
+<span class="lineNum">      22 </span>            :     0.7943282347242815,
+<span class="lineNum">      23 </span>            :     0.6309573444801932,
+<span class="lineNum">      24 </span>            :     0.5011872336272722,
+<span class="lineNum">      25 </span>            :     0.3981071705534972,
+<span class="lineNum">      26 </span>            :     0.31622776601683794,
+<span class="lineNum">      27 </span>            :     0.251188643150958,
+<span class="lineNum">      28 </span>            :     0.19952623149688797,
+<span class="lineNum">      29 </span>            :     0.15848931924611134,
+<span class="lineNum">      30 </span>            :     0.12589254117941673,
+<span class="lineNum">      31 </span>            :     0.1,
+<span class="lineNum">      32 </span>            :     0.07943282347242814,
+<span class="lineNum">      33 </span>            :     0.06309573444801933,
+<span class="lineNum">      34 </span>            :     0.05011872336272722,
+<span class="lineNum">      35 </span>            :     0.039810717055349734,
+<span class="lineNum">      36 </span>            :     0.03162277660168379,
+<span class="lineNum">      37 </span>            :     0.025118864315095794,
+<span class="lineNum">      38 </span>            :     0.0199526231496888,
+<span class="lineNum">      39 </span>            :     0.015848931924611134,
+<span class="lineNum">      40 </span>            :     0.012589254117941675,
+<span class="lineNum">      41 </span>            :     0.01,
+<span class="lineNum">      42 </span>            :     0.007943282347242814,
+<span class="lineNum">      43 </span>            :     0.00630957344480193,
+<span class="lineNum">      44 </span>            :     0.005011872336272725,
+<span class="lineNum">      45 </span>            :     0.003981071705534973,
+<span class="lineNum">      46 </span>            :     0.0031622776601683794,
+<span class="lineNum">      47 </span>            :     0.0025118864315095794,
+<span class="lineNum">      48 </span>            :     0.001995262314968879,
+<span class="lineNum">      49 </span>            :     0.001584893192461114,
+<span class="lineNum">      50 </span>            :     0.0012589254117941675,
+<span class="lineNum">      51 </span>            :     0.001,
+<span class="lineNum">      52 </span>            :     0.0007943282347242813,
+<span class="lineNum">      53 </span>            :     0.000630957344480193,
+<span class="lineNum">      54 </span>            :     0.0005011872336272725,
+<span class="lineNum">      55 </span>            :     0.00039810717055349735,
+<span class="lineNum">      56 </span>            :     0.00031622776601683794,
+<span class="lineNum">      57 </span>            :     0.00025118864315095795,
+<span class="lineNum">      58 </span>            :     0.00019952623149688788,
+<span class="lineNum">      59 </span>            :     0.00015848931924611142,
+<span class="lineNum">      60 </span>            :     0.00012589254117941674,
+<span class="lineNum">      61 </span>            :     0.0001,
+<span class="lineNum">      62 </span>            :     7.943282347242822e-05,
+<span class="lineNum">      63 </span>            :     6.309573444801929e-05,
+<span class="lineNum">      64 </span>            :     5.011872336272725e-05,
+<span class="lineNum">      65 </span>            :     3.9810717055349695e-05,
+<span class="lineNum">      66 </span>            :     3.1622776601683795e-05,
+<span class="lineNum">      67 </span>            :     2.5118864315095822e-05,
+<span class="lineNum">      68 </span>            :     1.9952623149688786e-05,
+<span class="lineNum">      69 </span>            :     1.584893192461114e-05,
+<span class="lineNum">      70 </span>            :     1.2589254117941661e-05,
+<span class="lineNum">      71 </span>            :     1e-05,
+<span class="lineNum">      72 </span>            :     7.943282347242822e-06,
+<span class="lineNum">      73 </span>            :     6.30957344480193e-06,
+<span class="lineNum">      74 </span>            :     5.011872336272725e-06,
+<span class="lineNum">      75 </span>            :     3.981071705534969e-06,
+<span class="lineNum">      76 </span>            :     3.162277660168379e-06,
+<span class="lineNum">      77 </span>            :     2.5118864315095823e-06,
+<span class="lineNum">      78 </span>            :     1.9952623149688787e-06,
+<span class="lineNum">      79 </span>            :     1.584893192461114e-06,
+<span class="lineNum">      80 </span>            :     1.2589254117941661e-06,
+<span class="lineNum">      81 </span>            :     1e-06,
+<span class="lineNum">      82 </span>            :     7.943282347242822e-07,
+<span class="lineNum">      83 </span>            :     6.30957344480193e-07,
+<span class="lineNum">      84 </span>            :     5.011872336272725e-07,
+<span class="lineNum">      85 </span>            :     3.981071705534969e-07,
+<span class="lineNum">      86 </span>            :     3.162277660168379e-07,
+<span class="lineNum">      87 </span>            :     2.5118864315095823e-07,
+<span class="lineNum">      88 </span>            :     1.9952623149688787e-07,
+<span class="lineNum">      89 </span>            :     1.584893192461114e-07,
+<span class="lineNum">      90 </span>            :     1.2589254117941662e-07,
+<span class="lineNum">      91 </span>            :     1e-07,
+<span class="lineNum">      92 </span>            :     7.943282347242822e-08,
+<span class="lineNum">      93 </span>            :     6.30957344480193e-08,
+<span class="lineNum">      94 </span>            :     5.011872336272725e-08,
+<span class="lineNum">      95 </span>            :     3.981071705534969e-08,
+<span class="lineNum">      96 </span>            :     3.162277660168379e-08,
+<span class="lineNum">      97 </span>            :     2.511886431509582e-08,
+<span class="lineNum">      98 </span>            :     1.9952623149688786e-08,
+<span class="lineNum">      99 </span>            :     1.5848931924611143e-08,
+<span class="lineNum">     100 </span>            :     1.2589254117941661e-08,
+<span class="lineNum">     101 </span>            :     1e-08,
+<span class="lineNum">     102 </span>            :     7.943282347242822e-09,
+<span class="lineNum">     103 </span>            :     6.309573444801943e-09,
+<span class="lineNum">     104 </span>            :     5.011872336272715e-09,
+<span class="lineNum">     105 </span>            :     3.981071705534969e-09,
+<span class="lineNum">     106 </span>            :     3.1622776601683795e-09,
+<span class="lineNum">     107 </span>            :     2.511886431509582e-09,
+<span class="lineNum">     108 </span>            :     1.9952623149688828e-09,
+<span class="lineNum">     109 </span>            :     1.584893192461111e-09,
+<span class="lineNum">     110 </span>            :     1.2589254117941663e-09,
+<span class="lineNum">     111 </span>            :     1e-09,
+<span class="lineNum">     112 </span>            :     7.943282347242822e-10,
+<span class="lineNum">     113 </span>            :     6.309573444801942e-10,
+<span class="lineNum">     114 </span>            :     5.011872336272714e-10,
+<span class="lineNum">     115 </span>            :     3.9810717055349694e-10,
+<span class="lineNum">     116 </span>            :     3.1622776601683795e-10,
+<span class="lineNum">     117 </span>            :     2.511886431509582e-10,
+<span class="lineNum">     118 </span>            :     1.9952623149688828e-10,
+<span class="lineNum">     119 </span>            :     1.584893192461111e-10,
+<span class="lineNum">     120 </span>            :     1.2589254117941662e-10,
+<span class="lineNum">     121 </span>            :     1e-10,
+<span class="lineNum">     122 </span>            :     7.943282347242822e-11,
+<span class="lineNum">     123 </span>            :     6.309573444801942e-11,
+<span class="lineNum">     124 </span>            :     5.011872336272715e-11,
+<span class="lineNum">     125 </span>            :     3.9810717055349695e-11,
+<span class="lineNum">     126 </span>            :     3.1622776601683794e-11,
+<span class="lineNum">     127 </span>            :     2.5118864315095823e-11,
+<span class="lineNum">     128 </span>            :     1.9952623149688828e-11,
+<span class="lineNum">     129 </span>            :     1.5848931924611107e-11,
+<span class="lineNum">     130 </span>            :     1.2589254117941662e-11,
+<span class="lineNum">     131 </span>            :     1e-11,
+<span class="lineNum">     132 </span>            :     7.943282347242821e-12,
+<span class="lineNum">     133 </span>            :     6.309573444801943e-12,
+<span class="lineNum">     134 </span>            :     5.011872336272715e-12,
+<span class="lineNum">     135 </span>            :     3.9810717055349695e-12,
+<span class="lineNum">     136 </span>            :     3.1622776601683794e-12,
+<span class="lineNum">     137 </span>            :     2.5118864315095823e-12,
+<span class="lineNum">     138 </span>            :     1.9952623149688827e-12,
+<span class="lineNum">     139 </span>            :     1.584893192461111e-12,
+<span class="lineNum">     140 </span>            :     1.258925411794166e-12,
+<span class="lineNum">     141 </span>            :     1e-12,
+<span class="lineNum">     142 </span>            :     7.943282347242822e-13,
+<span class="lineNum">     143 </span>            :     6.309573444801942e-13,
+<span class="lineNum">     144 </span>            :     5.011872336272715e-13,
+<span class="lineNum">     145 </span>            :     3.981071705534969e-13,
+<span class="lineNum">     146 </span>            :     3.162277660168379e-13,
+<span class="lineNum">     147 </span>            :     2.511886431509582e-13,
+<span class="lineNum">     148 </span>            :     1.9952623149688827e-13};
+<span class="lineNum">     149 </span>            : 
+<span class="lineNum">     150 </span>            : /* Get the Nx value (e.g. the N50) of the sequence length table len_counts We
+<span class="lineNum">     151 </span>            :  * assume the number of entries in len_counts is not huge so passing through
+<a name="152"><span class="lineNum">     152 </span>            :  * them multiple times is not too expensive.</a>
+<span class="lineNum">     153 </span>            :  * */
+<span class="lineNum">     154 </span><span class="lineCov">        154 : int get_nx(struct int_count **len_counts, int n_lens, int nx){</span>
+<span class="lineNum">     155 </span>            :     
+<span class="lineNum">     156 </span>            :     struct int_count s;
+<span class="lineNum">     157 </span><span class="lineCov">        154 :     long tot_bases = 0;</span>
+<span class="lineNum">     158 </span><span class="lineCov">        620 :     for(int i = 0; i &lt; n_lens; i++) {</span>
+<span class="lineNum">     159 </span><span class="lineCov">        466 :         s = (*len_counts)[i];</span>
+<span class="lineNum">     160 </span><span class="lineCov">        466 :         tot_bases += s.id * s.count; </span>
+<span class="lineNum">     161 </span>            :     }
+<span class="lineNum">     162 </span>            : 
+<span class="lineNum">     163 </span><span class="lineCov">        154 :     float nx_target_mass = tot_bases * ((float) nx / 100);</span>
+<span class="lineNum">     164 </span><span class="lineCov">        154 :     int nx_value = -1;</span>
+<span class="lineNum">     165 </span><span class="lineCov">        154 :     long nx_mass = 0;</span>
+<span class="lineNum">     166 </span><span class="lineCov">        286 :     for(int i = n_lens-1; i &gt;= 0; i--) {</span>
+<span class="lineNum">     167 </span><span class="lineCov">        286 :         s = (*len_counts)[i];</span>
+<span class="lineNum">     168 </span><span class="lineCov">        286 :         nx_mass += s.id * s.count; </span>
+<span class="lineNum">     169 </span><span class="lineCov">        286 :         if(nx_mass &gt;= nx_target_mass &amp;&amp; nx_value &lt; 0){</span>
+<span class="lineNum">     170 </span><span class="lineCov">        154 :             nx_value = s.id;</span>
+<span class="lineNum">     171 </span><span class="lineCov">        154 :             break;</span>
+<span class="lineNum">     172 </span>            :         }
+<span class="lineNum">     173 </span>            :     }
+<span class="lineNum">     174 </span><span class="lineCov">        154 :     return nx_value;</span>
+<a name="175"><span class="lineNum">     175 </span>            : }</a>
+<span class="lineNum">     176 </span>            : 
+<span class="lineNum">     177 </span><span class="lineCov">        118 : int compare(const void *p, const void *q)  </span>
+<span class="lineNum">     178 </span>            : { 
+<span class="lineNum">     179 </span><span class="lineCov">        118 :     int l = ((struct int_count *)p)-&gt;id; </span>
+<span class="lineNum">     180 </span><span class="lineCov">        118 :     int r = ((struct int_count *)q)-&gt;id;  </span>
+<span class="lineNum">     181 </span><span class="lineCov">        118 :     return (l - r); </span>
+<a name="182"><span class="lineNum">     182 </span>            : } </a>
+<span class="lineNum">     183 </span>            : 
+<span class="lineNum">     184 </span><span class="lineCov">        198 : void count_nt(char *seq, int len, long *counter)</span>
+<span class="lineNum">     185 </span>            : {
+<span class="lineNum">     186 </span><span class="lineCov">     405562 :     for(int i = 0; i &lt; len; i++){</span>
+<span class="lineNum">     187 </span><span class="lineCov">     405364 :         counter[(int)seq[i]] += 1;</span>
+<span class="lineNum">     188 </span>            :     }
+<span class="lineNum">     189 </span><span class="lineCov">        198 : }</span>
+<span class="lineNum">     190 </span>            : 
+<span class="lineNum">     191 </span>            : /* Faster implementation of log10 function from
+<a name="192"><span class="lineNum">     192 </span>            :  * http://www.machinedlearnings.com/2011/06/fast-approximate-logarithm-exponential.html</a>
+<span class="lineNum">     193 </span>            :  * */
+<span class="lineNum">     194 </span><span class="lineCov">        170 : float fastlog10 (float x) {</span>
+<span class="lineNum">     195 </span><span class="lineCov">        170 :     union { float f; uint32_t i; } vx = { x };</span>
+<span class="lineNum">     196 </span><span class="lineCov">        170 :     union { uint32_t i; float f; } mx = { (vx.i &amp; 0x007FFFFF) | (0x7e &lt;&lt; 23) };</span>
+<span class="lineNum">     197 </span><span class="lineCov">        170 :     float y = vx.i;</span>
+<span class="lineNum">     198 </span><span class="lineCov">        170 :     y *= 1.0 / (1 &lt;&lt; 23);</span>
+<span class="lineNum">     199 </span>            :  
+<span class="lineNum">     200 </span><span class="lineCov">        170 :     float log_2 =  y - 124.22544637f - 1.498030302f * mx.f - 1.72587999f / (0.3520887068f + mx.f);</span>
+<span class="lineNum">     201 </span>            :     // Convert log2 to log10. The constant 0.301 comes from log10(n) / log2(x)
+<span class="lineNum">     202 </span><span class="lineCov">        170 :     return 0.301029995f * log_2;</span>
+<span class="lineNum">     203 </span>            : }
+<span class="lineNum">     204 </span>            : 
+<span class="lineNum">     205 </span>            : /* Qualities are in phred scale (log scale) so we cannot directly average
+<span class="lineNum">     206 </span>            :  * them.  We need to convert to probabilities, average, convert back to phred.
+<a name="207"><span class="lineNum">     207 </span>            :  * See also https://gigabaseorgigabyte.wordpress.com/2017/06/26/averaging-basecall-quality-scores-the-right-way/</a>
+<span class="lineNum">     208 </span>            :  * */
+<span class="lineNum">     209 </span><span class="lineCov">        170 : float mean_quality(char *quality){</span>
+<span class="lineNum">     210 </span><span class="lineCov">        170 :     float sum = 0;</span>
+<span class="lineNum">     211 </span><span class="lineCov">        170 :     int len = strlen(quality);</span>
+<span class="lineNum">     212 </span><span class="lineCov">     404810 :     for(int i = 0; i &lt; len; i++){</span>
+<span class="lineNum">     213 </span><span class="lineCov">     404640 :         sum += PHRED_PROB[quality[i] - 33];</span>
+<span class="lineNum">     214 </span>            :     }
+<span class="lineNum">     215 </span><span class="lineCov">        170 :     float avg = sum / len;</span>
+<span class="lineNum">     216 </span><span class="lineCov">        170 :     float phred = -10 * fastlog10(avg);</span>
+<span class="lineNum">     217 </span><span class="lineCov">        170 :     return phred;</span>
+<a name="218"><span class="lineNum">     218 </span>            : }</a>
+<span class="lineNum">     219 </span>            : 
+<span class="lineNum">     220 </span><span class="lineCov">         32 : char* format_seconds(int seconds){</span>
+<span class="lineNum">     221 </span>            :         int h, m, s;
+<span class="lineNum">     222 </span><span class="lineCov">         32 :         h = (seconds/3600); </span>
+<span class="lineNum">     223 </span><span class="lineCov">         32 :         m = (seconds -(3600*h))/60;</span>
+<span class="lineNum">     224 </span><span class="lineCov">         32 :         s = (seconds -(3600*h)-(m*60));</span>
+<span class="lineNum">     225 </span>            :         static char fmt[100];
+<span class="lineNum">     226 </span><span class="lineCov">         32 :     snprintf(fmt, sizeof(fmt), &quot;%02d:%02d:%02d&quot;, h, m, s);</span>
+<span class="lineNum">     227 </span><span class="lineCov">         32 :     return fmt;</span>
+<a name="228"><span class="lineNum">     228 </span>            : }</a>
+<span class="lineNum">     229 </span>            : 
+<span class="lineNum">     230 </span><span class="lineCov">        198 : void h_length_update(void *_hash, int key){</span>
+<span class="lineNum">     231 </span>            : 
+<span class="lineNum">     232 </span><span class="lineCov">        198 :     khash_t(int2long) *hash = (khash_t(int2long)*)_hash;</span>
+<span class="lineNum">     233 </span>            :     
+<span class="lineNum">     234 </span>            :     int ret;
+<span class="lineNum">     235 </span><span class="lineCov">        198 :     khiter_t k = kh_get(int2long, hash, key);</span>
+<span class="lineNum">     236 </span><span class="lineCov">        198 :     if(k == kh_end(hash)){</span>
+<span class="lineNum">     237 </span><span class="lineCov">        106 :         k = kh_put(int2long, hash, key, &amp;ret); // add the key</span>
+<span class="lineNum">     238 </span><span class="lineCov">        106 :         kh_value(hash, k) = 1; // set the value of the key</span>
+<span class="lineNum">     239 </span>            :     } else {
+<span class="lineNum">     240 </span>            :         // If key found, increment value
+<span class="lineNum">     241 </span><span class="lineCov">         92 :         kh_value(hash, k) += 1;</span>
+<span class="lineNum">     242 </span>            :     }
+<a name="243"><span class="lineNum">     243 </span><span class="lineCov">        198 : }</span></a>
+<span class="lineNum">     244 </span>            : 
+<span class="lineNum">     245 </span><span class="lineCov">         34 : struct int_count * sort_int_table(void *_hash){</span>
+<span class="lineNum">     246 </span>            :     
+<span class="lineNum">     247 </span><span class="lineCov">         34 :     khash_t(int2long) *hash = (khash_t(int2long)*)_hash;</span>
+<span class="lineNum">     248 </span>            : 
+<span class="lineNum">     249 </span><span class="lineCov">         34 :     int n = kh_size(hash);</span>
+<span class="lineNum">     250 </span><span class="lineCov">         34 :     struct int_count *len_counts = malloc(n * sizeof(struct int_count));</span>
+<span class="lineNum">     251 </span>            :     
+<span class="lineNum">     252 </span><span class="lineCov">         34 :     int i = 0;</span>
+<span class="lineNum">     253 </span>            :     struct int_count s;
+<span class="lineNum">     254 </span>            :     khiter_t k;
+<span class="lineNum">     255 </span><span class="lineCov">        250 :     for (k = kh_begin(hash); k != kh_end(hash); ++k) {</span>
+<span class="lineNum">     256 </span><span class="lineCov">        216 :         if (kh_exist(hash, k)) {</span>
+<span class="lineNum">     257 </span><span class="lineCov">        106 :             s.id = kh_key(hash, k);</span>
+<span class="lineNum">     258 </span><span class="lineCov">        106 :             s.count = kh_value(hash, k);</span>
+<span class="lineNum">     259 </span><span class="lineCov">        106 :             len_counts[i] = s;</span>
+<span class="lineNum">     260 </span><span class="lineCov">        106 :             i++;</span>
+<span class="lineNum">     261 </span>            :         }
+<span class="lineNum">     262 </span>            :     }
+<span class="lineNum">     263 </span><span class="lineCov">         34 :     qsort(len_counts, n, sizeof(struct int_count), compare);</span>
+<span class="lineNum">     264 </span><span class="lineCov">         34 :     return len_counts;</span>
+<span class="lineNum">     265 </span>            : }
+<span class="lineNum">     266 </span>            : 
+<span class="lineNum">     267 </span>            : #endif
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

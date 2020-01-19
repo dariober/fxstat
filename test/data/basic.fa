@@ -3,19 +3,16 @@ actactacatcatacaG
 actactacatcatacaG
 >chr2_baz
 ATATATATATATATATATATG
->chr3_XXXXXXXXXXXXXXXXXXXXXXXXXXX_END
+>chr3
 CTCTCTCTCCG
 >chr4
 AAAAAAAAAAAAAAAAAAAAAAAG
 >chr5
 TTTTTTTTTTTTTTTTTTTTTTTTTTG
-;comment here
 >chr6
-    ; comment there
 GGGGGGGCCCCCCCCG
-;
 GGGGGGGCCCCCCCCG
-       
+
 >chr7
 gggggggccccccccg
 gggggggccccccccg
