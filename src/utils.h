@@ -11,6 +11,82 @@
 
 KHASH_MAP_INIT_INT(int2long, long)  // instantiate structs and methods
                                      // with int key and long value
+
+/*struct to hold Nx statistics */
+struct Nx {
+    int N;
+    int length;
+};
+
+/* struct to hold results that will be finally presented to the user
+ * */
+struct results {
+    char *filename;
+    long n_seq;
+    long n_bases; 
+    float median_length;
+    float mean_read_quality;
+    struct Nx *nx;
+    long nt_counter[256];
+};
+
+struct results init_results(int nx_ints[]){
+    struct results results;
+    results.n_seq = 0;
+    results.n_bases = 0;
+    results.mean_read_quality = 0.0;
+    for(int i = 0; i < 256; i++){
+        results.nt_counter[i] = 0;
+    }
+
+    int nnx = 0;
+    while(nx_ints[nnx] != -1){
+        nnx++;
+    }
+    results.nx = malloc((nnx + 1) * sizeof(struct results));
+    for(int i = 0; i < nnx; i++){
+        results.nx[i].N = nx_ints[i];
+    }
+    results.nx[nnx].N = -1; // Signal end of N cutoffs
+    
+    return results;
+}
+
+void print_results(FILE *fout, struct results results){
+    fprintf(fout, "[%s]\n", results.filename);
+    fprintf(fout, "n_seq              %ld\n", results.n_seq);
+    fprintf(fout, "n_bases            %ld\n", results.n_bases);
+    fprintf(fout, "mean_length        %.2f\n", (float) results.n_bases / results.n_seq);
+    fprintf(fout, "median_length      %.2f\n", results.median_length);
+    fprintf(fout, "mean_read_quality  %.2f\n", results.mean_read_quality);
+
+    int nnx = 0;
+    while((results.nx[nnx].N) != -1){
+        char cmt[100];
+        if(results.nx[nnx].N == 0){
+            strncpy(cmt, "  # MAX length", sizeof(cmt));
+        } else if (results.nx[nnx].N == 100){
+            strncpy(cmt, "  # MIN length > 0", sizeof(cmt));
+        } else {
+            strncpy(cmt, "", sizeof(cmt));
+        }
+        fprintf(fout, "N%-5d             %d%s\n", results.nx[nnx].N, results.nx[nnx].length, cmt);
+        nnx++;
+    }
+    fprintf(fout, "A                  %.2f%%\n", 
+            (float) 100 * (results.nt_counter['A'] + results.nt_counter['a']) / results.n_bases);
+    fprintf(fout, "T                  %.2f%%\n", 
+            (float) 100 * (results.nt_counter['T'] + results.nt_counter['t']) / results.n_bases);
+    fprintf(fout, "C                  %.2f%%\n", 
+            (float) 100 * (results.nt_counter['C'] + results.nt_counter['c']) / results.n_bases);
+    fprintf(fout, "G                  %.2f%%\n", 
+            (float) 100 * (results.nt_counter['G'] + results.nt_counter['g']) / results.n_bases);
+    fprintf(fout, "N                  %.2f%%\n", 
+            (float) 100 * (results.nt_counter['N'] + results.nt_counter['n']) / results.n_bases);
+    fprintf(fout, "GC                 %.2f%%\n", 
+            (float) 100 * (results.nt_counter['G'] + results.nt_counter['g'] + results.nt_counter['C'] + results.nt_counter['c']) / results.n_bases);
+}
+
 struct int_count {
     int id;
     long count;
@@ -151,20 +227,26 @@ static const float PHRED_PROB[] = {
  * assume the number of entries in len_counts is not huge so passing through
  * them multiple times is not too expensive.
  * */
-int get_nx(struct int_count **len_counts, int n_lens, int nx){
+int get_nx(struct int_count **sorted_len_counts, int n_lens, int nx){
     
     struct int_count s;
     long tot_bases = 0;
     for(int i = 0; i < n_lens; i++) {
-        s = (*len_counts)[i];
-        tot_bases += s.id * s.count; 
+        s = (*sorted_len_counts)[i];
+        tot_bases += s.id * s.count;
+        if(i > 0 && (*sorted_len_counts)[i-1].id > (*sorted_len_counts)[i].id){
+            // A sanity check
+            fprintf(stderr, "List of counts is not sorted by length. Length %d before %d\n", 
+                    (*sorted_len_counts)[i-1].id, (*sorted_len_counts)[i].id);
+            exit(1);
+        }
     }
 
     float nx_target_mass = tot_bases * ((float) nx / 100);
     int nx_value = -1;
     long nx_mass = 0;
     for(int i = n_lens-1; i >= 0; i--) {
-        s = (*len_counts)[i];
+        s = (*sorted_len_counts)[i];
         nx_mass += s.id * s.count; 
         if(nx_mass >= nx_target_mass && nx_value < 0){
             nx_value = s.id;
@@ -174,6 +256,46 @@ int get_nx(struct int_count **len_counts, int n_lens, int nx){
     return nx_value;
 }
 
+float median_length(struct int_count **sorted_len_counts, int n_lens){
+    // Get total number of reads
+    struct int_count s;
+    long tot_reads = 0;
+    for(int i = 0; i < n_lens; i++) {
+        s = (*sorted_len_counts)[i];
+        tot_reads += s.count;
+        if(i > 0 && (*sorted_len_counts)[i-1].id > (*sorted_len_counts)[i].id){
+            // A sanity check
+            fprintf(stderr, "List of counts is not sorted by length. Length %d before %d\n", 
+                    (*sorted_len_counts)[i-1].id, (*sorted_len_counts)[i].id);
+            exit(1);
+        }
+    }
+
+    long idxlow, idxhigh;
+    if(tot_reads % 2 == 0){
+        idxlow = tot_reads / 2;
+        idxhigh = idxlow + 1;
+    } else {
+        idxlow = (tot_reads+1) / 2;
+        idxhigh = idxlow;
+    }
+    int low = -1;
+    int high = -1;
+    long sum = 0;
+    for(int i = 0; i < n_lens; i++) {
+        s = (*sorted_len_counts)[i];
+        sum += s.count;
+        if(sum >= idxlow && low == -1){
+            low = s.id;
+        }
+        if(sum >= idxhigh && high == -1){
+            high = s.id;
+            break;
+        }
+    }
+    return (low + high) / 2.0; 
+}
+
 int compare(const void *p, const void *q)  
 { 
     int l = ((struct int_count *)p)->id; 
@@ -181,7 +303,7 @@ int compare(const void *p, const void *q)
     return (l - r); 
 } 
 
-void count_nt(char *seq, int len, long *counter)
+static inline void count_nt(char *seq, int len, long *counter)
 {
     for(int i = 0; i < len; i++){
         counter[(int)seq[i]] += 1;
@@ -206,7 +328,7 @@ float fastlog10 (float x) {
  * them.  We need to convert to probabilities, average, convert back to phred.
  * See also https://gigabaseorgigabyte.wordpress.com/2017/06/26/averaging-basecall-quality-scores-the-right-way/
  * */
-float mean_quality(char *quality){
+static inline float mean_quality(char *quality){
     float sum = 0;
     int len = strlen(quality);
     for(int i = 0; i < len; i++){
@@ -227,8 +349,8 @@ char* format_seconds(int seconds){
     return fmt;
 }
 
-void h_length_update(void *_hash, int key){
-
+static inline void h_length_update(void *_hash, int key){
+    
     khash_t(int2long) *hash = (khash_t(int2long)*)_hash;
     
     int ret;

@@ -31,17 +31,17 @@
             <td class="headerValue">gcov.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntry">66</td>
+            <td class="headerCovTableEntry">67</td>
             <td class="headerCovTableEntry">72</td>
-            <td class="headerCovTableEntryHi">91.7 %</td>
+            <td class="headerCovTableEntryHi">93.1 %</td>
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2020-01-19 17:32:52</td>
+            <td class="headerValue">2020-01-26 09:33:46</td>
             <td></td>
             <td class="headerItem">Functions:</td>
-            <td class="headerCovTableEntry">9</td>
-            <td class="headerCovTableEntry">9</td>
+            <td class="headerCovTableEntry">10</td>
+            <td class="headerCovTableEntry">10</td>
             <td class="headerCovTableEntryHi">100.0 %</td>
           </tr>
           <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
@@ -70,181 +70,186 @@
 <span class="lineNum">       8 </span>            : #include &quot;khash.h&quot;
 <a name="9"><span class="lineNum">       9 </span>            : #include &quot;argparser.c&quot;</a>
 <span class="lineNum">      10 </span>            : 
-<a name="11"><span class="lineNum">      11 </span><span class="lineCov">       1964 : KSEQ_INIT(gzFile, gzread)</span></a>
+<a name="11"><span class="lineNum">      11 </span><span class="lineCov">       2174 : KSEQ_INIT(gzFile, gzread)</span></a>
 <span class="lineNum">      12 </span>            : 
-<span class="lineNum">      13 </span><span class="lineCov">         46 : int main(int argc, char *argv[])</span>
-<span class="lineNum">      14 </span>            : {
-<span class="lineNum">      15 </span><span class="lineCov">         46 :     time_t t0 = time(NULL);</span>
+<span class="lineNum">      13 </span><span class="lineCov">         40 : int scan_file(char *infile, long n_stop, struct results *results){</span>
+<span class="lineNum">      14 </span>            :     
+<span class="lineNum">      15 </span><span class="lineCov">         40 :     results-&gt;filename = strdup(infile); // malloc(strlen(infile) + 1);</span>
 <span class="lineNum">      16 </span>            : 
-<span class="lineNum">      17 </span><span class="lineCov">         46 :     struct args args = argparser(argc, &amp;argv);</span>
-<span class="lineNum">      18 </span>            : 
-<span class="lineNum">      19 </span>            :     int err;
-<span class="lineNum">      20 </span><span class="lineCov">         34 :     FILE *stream = NULL;</span>
-<span class="lineNum">      21 </span><span class="lineCov">         34 :     if(strcmp(args.infile, &quot;-&quot;) == 0){</span>
-<span class="lineNum">      22 </span><span class="lineCov">         10 :         stream = stdin;</span>
-<span class="lineNum">      23 </span>            :     } else {
-<span class="lineNum">      24 </span><span class="lineCov">         24 :         if( access(args.infile, R_OK) == -1 ){</span>
-<span class="lineNum">      25 </span><span class="lineNoCov">          0 :             fprintf(stderr, &quot;File '%s' not found or not readable\n&quot;, args.infile);</span>
-<span class="lineNum">      26 </span><span class="lineNoCov">          0 :             return 1;</span>
-<span class="lineNum">      27 </span>            :         }
-<span class="lineNum">      28 </span><span class="lineCov">         24 :         stream = fopen(args.infile, &quot;r&quot;);</span>
-<span class="lineNum">      29 </span>            :     }
-<span class="lineNum">      30 </span><span class="lineCov">         34 :     gzFile fh = gzdopen(fileno(stream), &quot;r&quot;);</span>
-<span class="lineNum">      31 </span>            : 
-<span class="lineNum">      32 </span><span class="lineCov">         34 :     khash_t(int2long) *h_length = kh_init(int2long); // create a hashtable</span>
-<span class="lineNum">      33 </span>            : 
-<span class="lineNum">      34 </span>            :     long nt_counter[256];
-<span class="lineNum">      35 </span><span class="lineCov">       8738 :     for(int i = 0; i &lt; 256; i++){</span>
-<span class="lineNum">      36 </span><span class="lineCov">       8704 :         nt_counter[i] = 0;</span>
-<span class="lineNum">      37 </span>            :     }
-<span class="lineNum">      38 </span>            :     
-<span class="lineNum">      39 </span>            :     kseq_t *seq;
-<span class="lineNum">      40 </span>            :     int l;
-<span class="lineNum">      41 </span><span class="lineCov">         34 :     long n_seq = 0;</span>
-<span class="lineNum">      42 </span><span class="lineCov">         34 :     long n_bases = 0;</span>
-<span class="lineNum">      43 </span><span class="lineCov">         34 :     float sum_read_quality = 0;</span>
-<span class="lineNum">      44 </span><span class="lineCov">         34 :     char spacer = '\0';</span>
-<span class="lineNum">      45 </span>            : 
-<span class="lineNum">      46 </span><span class="lineCov">         34 :     seq = kseq_init(fh);</span>
-<span class="lineNum">      47 </span><span class="lineCov">         34 :     while ((l = kseq_read(seq)) &gt;= 0) {</span>
-<span class="lineNum">      48 </span><span class="lineCov">        198 :         n_seq += 1;</span>
-<span class="lineNum">      49 </span><span class="lineCov">        198 :         int seq_len = strlen(seq-&gt;seq.s);</span>
-<span class="lineNum">      50 </span><span class="lineCov">        198 :         if(n_seq % 1000000 == 0){</span>
-<span class="lineNum">      51 </span><span class="lineNoCov">          0 :             fprintf(stderr, &quot;\r%ld reads processed&quot;, n_seq);</span>
-<span class="lineNum">      52 </span><span class="lineNoCov">          0 :             fflush(stderr);</span>
-<span class="lineNum">      53 </span><span class="lineNoCov">          0 :             spacer = '\n';</span>
-<span class="lineNum">      54 </span>            :         }
-<span class="lineNum">      55 </span><span class="lineCov">        198 :         count_nt(seq-&gt;seq.s, seq_len, nt_counter);</span>
-<span class="lineNum">      56 </span>            :         
-<span class="lineNum">      57 </span><span class="lineCov">        198 :         if(seq-&gt;qual.l){</span>
-<span class="lineNum">      58 </span><span class="lineCov">        170 :             sum_read_quality += mean_quality(seq-&gt;qual.s);</span>
-<span class="lineNum">      59 </span>            :         }
-<span class="lineNum">      60 </span>            : 
-<span class="lineNum">      61 </span><span class="lineCov">        198 :         n_bases += seq_len;</span>
-<span class="lineNum">      62 </span>            :        
-<span class="lineNum">      63 </span><span class="lineCov">        198 :         h_length_update(h_length, seq_len);</span>
-<span class="lineNum">      64 </span>            : 
-<span class="lineNum">      65 </span><span class="lineCov">        198 :         if(args.n_stop &gt; 0 &amp;&amp; n_seq &gt;= args.n_stop){</span>
-<span class="lineNum">      66 </span><span class="lineCov">          2 :             break;</span>
-<span class="lineNum">      67 </span>            :         }
-<span class="lineNum">      68 </span>            :     } 
-<span class="lineNum">      69 </span><span class="lineCov">         34 :     kseq_destroy(seq);</span>
-<span class="lineNum">      70 </span><span class="lineCov">         34 :     const char *err_msg = gzerror(fh, &amp;err);</span>
-<span class="lineNum">      71 </span><span class="lineCov">         34 :     if(strlen(err_msg) &gt; 0){</span>
-<span class="lineNum">      72 </span><span class="lineNoCov">          0 :         fprintf(stderr, &quot;\rError: %s\n&quot;, err_msg);</span>
-<span class="lineNum">      73 </span>            :     }
-<span class="lineNum">      74 </span><span class="lineCov">         34 :     fclose(stream);</span>
-<span class="lineNum">      75 </span><span class="lineCov">         34 :     gzclose(fh);</span>
-<span class="lineNum">      76 </span>            :     
-<span class="lineNum">      77 </span>            :     struct int_count *len_counts;
-<span class="lineNum">      78 </span><span class="lineCov">         34 :     len_counts = sort_int_table(h_length); </span>
-<span class="lineNum">      79 </span>            : 
-<span class="lineNum">      80 </span>            :     /*Collect stats*/
-<span class="lineNum">      81 </span>            : 
-<span class="lineNum">      82 </span><span class="lineCov">         34 :     int n_lens = kh_size(h_length);</span>
-<span class="lineNum">      83 </span>            :    
-<span class="lineNum">      84 </span><span class="lineCov">         34 :     time_t t1= time(NULL);</span>
-<span class="lineNum">      85 </span>            :     
-<span class="lineNum">      86 </span>            :     FILE *fout;
-<span class="lineNum">      87 </span><span class="lineCov">         34 :     if(strcmp(args.outfile, &quot;-&quot;) == 0){</span>
-<span class="lineNum">      88 </span><span class="lineCov">         30 :         fout = stdout;</span>
-<span class="lineNum">      89 </span>            :     } else {
-<span class="lineNum">      90 </span><span class="lineCov">          4 :         fout = fopen(args.outfile, &quot;w&quot;);</span>
-<span class="lineNum">      91 </span><span class="lineCov">          4 :         if(access(args.outfile, W_OK) == -1){</span>
-<span class="lineNum">      92 </span><span class="lineCov">          2 :             fprintf(stderr, &quot;Unable to write to '%s'\n&quot;, args.outfile);</span>
-<span class="lineNum">      93 </span><span class="lineCov">          2 :             return 1;</span>
-<span class="lineNum">      94 </span>            :         }
-<span class="lineNum">      95 </span>            :     }
-<span class="lineNum">      96 </span><span class="lineCov">         32 :     fprintf(stderr, &quot;%c&quot;, spacer);</span>
-<span class="lineNum">      97 </span><span class="lineCov">         32 :     fprintf(fout, &quot;n_seq              %ld\n&quot;, n_seq);</span>
-<span class="lineNum">      98 </span><span class="lineCov">         32 :     fprintf(fout, &quot;n_bases            %ld\n&quot;, n_bases);</span>
-<span class="lineNum">      99 </span><span class="lineCov">         32 :     fprintf(fout, &quot;mean_length        %.2f\n&quot;, (float) n_bases / n_seq);</span>
-<span class="lineNum">     100 </span><span class="lineCov">         32 :     fprintf(fout, &quot;mean_read_quality  %.2f\n&quot;, sum_read_quality / n_seq);</span>
-<span class="lineNum">     101 </span><span class="lineCov">         32 :     int nnx = 0;</span>
-<span class="lineNum">     102 </span><span class="lineCov">        154 :     while(1){</span>
-<span class="lineNum">     103 </span><span class="lineCov">        186 :         int nx = args.nx_ints[nnx];</span>
-<span class="lineNum">     104 </span><span class="lineCov">        186 :         if(nx == -1){</span>
-<span class="lineNum">     105 </span><span class="lineCov">         32 :             break;</span>
-<span class="lineNum">     106 </span>            :         }
-<span class="lineNum">     107 </span><span class="lineCov">        154 :         fprintf(fout, &quot;N%-5d             %d\n&quot;, nx, get_nx(&amp;len_counts, n_lens, nx));</span>
-<span class="lineNum">     108 </span><span class="lineCov">        154 :         nnx++;</span>
-<span class="lineNum">     109 </span>            :     }
-<span class="lineNum">     110 </span><span class="lineCov">         32 :     fprintf(fout, &quot;A                  %.2f%%\n&quot;, (float) 100 * (nt_counter['A'] + nt_counter['a']) / n_bases);</span>
-<span class="lineNum">     111 </span><span class="lineCov">         32 :     fprintf(fout, &quot;T                  %.2f%%\n&quot;, (float) 100 * (nt_counter['T'] + nt_counter['t']) / n_bases);</span>
-<span class="lineNum">     112 </span><span class="lineCov">         32 :     fprintf(fout, &quot;C                  %.2f%%\n&quot;, (float) 100 * (nt_counter['C'] + nt_counter['c']) / n_bases);</span>
-<span class="lineNum">     113 </span><span class="lineCov">         32 :     fprintf(fout, &quot;G                  %.2f%%\n&quot;, (float) 100 * (nt_counter['G'] + nt_counter['g']) / n_bases);</span>
-<span class="lineNum">     114 </span><span class="lineCov">         32 :     fprintf(fout, &quot;N                  %.2f%%\n&quot;, (float) 100 * (nt_counter['N'] + nt_counter['n']) / n_bases);</span>
-<span class="lineNum">     115 </span><span class="lineCov">         32 :     fprintf(fout, &quot;CG                 %.2f%%\n&quot;, (float) 100 * (nt_counter['G'] + nt_counter['g'] + nt_counter['C'] + nt_counter['c']) / n_bases);</span>
-<span class="lineNum">     116 </span><span class="lineCov">         32 :     fclose(fout);</span>
-<span class="lineNum">     117 </span>            : 
-<span class="lineNum">     118 </span><span class="lineCov">         32 :     fprintf(stderr, &quot;# Proc time %s\n&quot;, format_seconds(t1-t0));</span>
+<span class="lineNum">      17 </span><span class="lineCov">         40 :     FILE *stream = NULL;</span>
+<span class="lineNum">      18 </span><span class="lineCov">         40 :     if(strcmp(infile, &quot;-&quot;) == 0){</span>
+<span class="lineNum">      19 </span><span class="lineCov">         12 :         stream = stdin;</span>
+<span class="lineNum">      20 </span>            :     } else {
+<span class="lineNum">      21 </span><span class="lineCov">         28 :         if( access(infile, R_OK) == -1 ){</span>
+<span class="lineNum">      22 </span><span class="lineNoCov">          0 :             fprintf(stderr, &quot;File '%s' not found or not readable\n&quot;, infile);</span>
+<span class="lineNum">      23 </span><span class="lineNoCov">          0 :             return 1;</span>
+<span class="lineNum">      24 </span>            :         }
+<span class="lineNum">      25 </span><span class="lineCov">         28 :         stream = fopen(infile, &quot;r&quot;);</span>
+<span class="lineNum">      26 </span>            :     }
+<span class="lineNum">      27 </span><span class="lineCov">         40 :     gzFile fh = gzdopen(fileno(stream), &quot;r&quot;);</span>
+<span class="lineNum">      28 </span>            :     
+<span class="lineNum">      29 </span><span class="lineCov">         40 :     khash_t(int2long) *h_length = kh_init(int2long); // create a hashtable</span>
+<span class="lineNum">      30 </span>            : 
+<span class="lineNum">      31 </span>            :     kseq_t *seq;
+<span class="lineNum">      32 </span>            :     int l;
+<span class="lineNum">      33 </span><span class="lineCov">         40 :     float sum_read_quality = 0;</span>
+<span class="lineNum">      34 </span>            : 
+<span class="lineNum">      35 </span><span class="lineCov">         40 :     seq = kseq_init(fh);</span>
+<span class="lineNum">      36 </span><span class="lineCov">         40 :     while ((l = kseq_read(seq)) &gt;= 0) {</span>
+<span class="lineNum">      37 </span><span class="lineCov">        220 :         results-&gt;n_seq += 1;</span>
+<span class="lineNum">      38 </span><span class="lineCov">        220 :         int seq_len = strlen(seq-&gt;seq.s);</span>
+<span class="lineNum">      39 </span><span class="lineCov">        220 :         if(results-&gt;n_seq % 1000000 == 0){</span>
+<span class="lineNum">      40 </span><span class="lineNoCov">          0 :             fprintf(stderr, &quot;\r%ld reads processed&quot;, results-&gt;n_seq);</span>
+<span class="lineNum">      41 </span><span class="lineNoCov">          0 :             fflush(stderr);</span>
+<span class="lineNum">      42 </span>            :         }
+<span class="lineNum">      43 </span><span class="lineCov">        220 :         count_nt(seq-&gt;seq.s, seq_len, results-&gt;nt_counter);</span>
+<span class="lineNum">      44 </span>            :         
+<span class="lineNum">      45 </span><span class="lineCov">        220 :         if(seq-&gt;qual.l){</span>
+<span class="lineNum">      46 </span><span class="lineCov">        174 :             sum_read_quality += mean_quality(seq-&gt;qual.s);</span>
+<span class="lineNum">      47 </span>            :         }
+<span class="lineNum">      48 </span>            : 
+<span class="lineNum">      49 </span><span class="lineCov">        220 :         results-&gt;n_bases += seq_len;</span>
+<span class="lineNum">      50 </span>            :        
+<span class="lineNum">      51 </span><span class="lineCov">        220 :         h_length_update(h_length, seq_len);</span>
+<span class="lineNum">      52 </span>            : 
+<span class="lineNum">      53 </span><span class="lineCov">        220 :         if(n_stop &gt; 0 &amp;&amp; results-&gt;n_seq &gt;= n_stop){</span>
+<span class="lineNum">      54 </span><span class="lineCov">          2 :             break;</span>
+<span class="lineNum">      55 </span>            :         }
+<span class="lineNum">      56 </span>            :     } 
+<span class="lineNum">      57 </span>            :     
+<span class="lineNum">      58 </span><span class="lineCov">         40 :     kseq_destroy(seq);</span>
+<span class="lineNum">      59 </span>            :    
+<span class="lineNum">      60 </span>            :     int err;
+<span class="lineNum">      61 </span><span class="lineCov">         40 :     const char *err_msg = gzerror(fh, &amp;err);</span>
+<span class="lineNum">      62 </span><span class="lineCov">         40 :     if(strlen(err_msg) &gt; 0){</span>
+<span class="lineNum">      63 </span><span class="lineCov">          2 :         fprintf(stderr, &quot;\rError: %s\n&quot;, err_msg);</span>
+<span class="lineNum">      64 </span><span class="lineCov">          2 :         return err;</span>
+<span class="lineNum">      65 </span>            :     }
+<span class="lineNum">      66 </span><span class="lineCov">         38 :     fclose(stream);</span>
+<span class="lineNum">      67 </span><span class="lineCov">         38 :     gzclose(fh);</span>
+<span class="lineNum">      68 </span>            : 
+<span class="lineNum">      69 </span>            :     struct int_count *len_counts;
+<span class="lineNum">      70 </span><span class="lineCov">         38 :     len_counts = sort_int_table(h_length); </span>
+<span class="lineNum">      71 </span>            : 
+<span class="lineNum">      72 </span><span class="lineCov">         38 :     int n_lens = kh_size(h_length);</span>
+<span class="lineNum">      73 </span><span class="lineCov">         38 :     int nnx = 0;</span>
+<span class="lineNum">      74 </span><span class="lineCov">        254 :     while(results-&gt;nx[nnx].N != -1){</span>
+<span class="lineNum">      75 </span><span class="lineCov">        178 :         results-&gt;nx[nnx].length = get_nx(&amp;len_counts, n_lens, results-&gt;nx[nnx].N);</span>
+<span class="lineNum">      76 </span><span class="lineCov">        178 :         nnx++;</span>
+<span class="lineNum">      77 </span>            :     }
+<span class="lineNum">      78 </span>            : 
+<span class="lineNum">      79 </span><span class="lineCov">         38 :     kh_destroy_int2long(h_length);</span>
+<span class="lineNum">      80 </span><span class="lineCov">         38 :     results-&gt;mean_read_quality = (float) sum_read_quality / results-&gt;n_seq;</span>
+<span class="lineNum">      81 </span><span class="lineCov">         38 :     free(len_counts);</span>
+<span class="lineNum">      82 </span><span class="lineCov">         38 :     return err;</span>
+<a name="83"><span class="lineNum">      83 </span>            : }</a>
+<span class="lineNum">      84 </span>            : 
+<span class="lineNum">      85 </span><span class="lineCov">         52 : int main(int argc, char *argv[])</span>
+<span class="lineNum">      86 </span>            : {
+<span class="lineNum">      87 </span><span class="lineCov">         52 :     time_t t0 = time(NULL);</span>
+<span class="lineNum">      88 </span>            : 
+<span class="lineNum">      89 </span><span class="lineCov">         52 :     struct args args = argparser(argc, &amp;argv);</span>
+<span class="lineNum">      90 </span>            : 
+<span class="lineNum">      91 </span>            :     FILE *fout;
+<span class="lineNum">      92 </span><span class="lineCov">         40 :     if(strcmp(args.outfile, &quot;-&quot;) == 0){</span>
+<span class="lineNum">      93 </span><span class="lineCov">         36 :         fout = stdout;</span>
+<span class="lineNum">      94 </span>            :     } else {
+<span class="lineNum">      95 </span><span class="lineCov">          4 :         fout = fopen(args.outfile, &quot;w&quot;);</span>
+<span class="lineNum">      96 </span><span class="lineCov">          4 :         if(access(args.outfile, W_OK) == -1){</span>
+<span class="lineNum">      97 </span><span class="lineCov">          2 :             fprintf(stderr, &quot;Unable to write to '%s'\n&quot;, args.outfile);</span>
+<span class="lineNum">      98 </span><span class="lineCov">          2 :             return 1;</span>
+<span class="lineNum">      99 </span>            :         }
+<span class="lineNum">     100 </span>            :     }
+<span class="lineNum">     101 </span>            : 
+<span class="lineNum">     102 </span><span class="lineCov">         38 :     int nfiles = 0;</span>
+<span class="lineNum">     103 </span>            :     int err;
+<span class="lineNum">     104 </span><span class="lineCov">        114 :     while(args.infile[nfiles] != NULL){</span>
+<span class="lineNum">     105 </span><span class="lineCov">         40 :         struct results results = init_results(args.nx_ints);</span>
+<span class="lineNum">     106 </span><span class="lineCov">         40 :         err = scan_file(args.infile[nfiles], args.n_stop, &amp;results);</span>
+<span class="lineNum">     107 </span><span class="lineCov">         40 :         if(err != 0){</span>
+<span class="lineNum">     108 </span><span class="lineCov">          2 :             return err;</span>
+<span class="lineNum">     109 </span>            :         }
+<span class="lineNum">     110 </span><span class="lineCov">         38 :         if(results.n_seq &gt; 1000000){</span>
+<span class="lineNum">     111 </span><span class="lineNoCov">          0 :             fprintf(stderr, &quot;\n&quot;);</span>
+<span class="lineNum">     112 </span>            :         }
+<span class="lineNum">     113 </span><span class="lineCov">         38 :         print_results(fout, results);</span>
+<span class="lineNum">     114 </span><span class="lineCov">         38 :         free(results.nx);        </span>
+<span class="lineNum">     115 </span><span class="lineCov">         38 :         free(results.filename);</span>
+<span class="lineNum">     116 </span><span class="lineCov">         38 :         nfiles++;</span>
+<span class="lineNum">     117 </span>            :     }
+<span class="lineNum">     118 </span><span class="lineCov">         36 :     fclose(fout);</span>
 <span class="lineNum">     119 </span>            : 
-<span class="lineNum">     120 </span><span class="lineCov">         32 :     kh_destroy_int2long(h_length);</span>
-<span class="lineNum">     121 </span><span class="lineCov">         32 :     free(len_counts);</span>
-<span class="lineNum">     122 </span><span class="lineCov">         32 :     return err;</span>
-<span class="lineNum">     123 </span>            : }
-<span class="lineNum">     124 </span>            :     /*
-<span class="lineNum">     125 </span>            :     char xseq[] = &quot;ABCAACACACACABABABAACACBABABABABBABABA&quot;;
-<span class="lineNum">     126 </span>            :     
-<span class="lineNum">     127 </span>            :     int kmer_size = 1;
-<span class="lineNum">     128 </span>            :     int ret; 
-<span class="lineNum">     129 </span>            :     khiter_t k;
-<span class="lineNum">     130 </span>            :     khash_t(khStrLong) *h = kh_init(khStrLong); // create a hashtable
-<span class="lineNum">     131 </span>            : 
-<span class="lineNum">     132 </span>            :     for(int i = 0; i &lt; 10000000; i++){
-<span class="lineNum">     133 </span>            :         int len = strlen(xseq);
-<span class="lineNum">     134 </span>            :         for(int j = 0; j &lt; len - kmer_size + 1; j++){
-<span class="lineNum">     135 </span>            :             char kmer[kmer_size+1];  
-<span class="lineNum">     136 </span>            :             memcpy(kmer, xseq+j, kmer_size);
-<span class="lineNum">     137 </span>            :             kmer[kmer_size] = '\0';
-<span class="lineNum">     138 </span>            :             k = kh_get(khStrLong, h, kmer);
-<span class="lineNum">     139 </span>            :             if(k == kh_end(h)){
-<span class="lineNum">     140 </span>            :                 k = kh_put(khStrLong, h, strdup(kmer), &amp;ret);
-<span class="lineNum">     141 </span>            :                 kh_value(h, k) = 0;
-<span class="lineNum">     142 </span>            :             }
-<span class="lineNum">     143 </span>            :             kh_value(h, k) += 1;
-<span class="lineNum">     144 </span>            :         }
-<span class="lineNum">     145 </span>            :     }
-<span class="lineNum">     146 </span>            :     for (k = kh_begin(h); k != kh_end(h); ++k) {
-<span class="lineNum">     147 </span>            :         if (kh_exist(h, k)) {
-<span class="lineNum">     148 </span>            :             const char *key = kh_key(h,k);
-<span class="lineNum">     149 </span>            :             long tval = kh_value(h, k);
-<span class="lineNum">     150 </span>            :             printf(&quot;key=%s  val=%ld\n&quot;, key, tval);
-<span class="lineNum">     151 </span>            :             // free((char*)kh_key(h, k));
-<span class="lineNum">     152 </span>            :         }
-<span class="lineNum">     153 </span>            :     }
-<span class="lineNum">     154 </span>            :     kh_destroy(khStrLong, h);
-<span class="lineNum">     155 </span>            :     return 0;
-<span class="lineNum">     156 </span>            :     */    
-<span class="lineNum">     157 </span>            :     /*
-<span class="lineNum">     158 </span>            :     k = kh_put(khStrLong, h, 1, &amp;ret); // add the key
-<span class="lineNum">     159 </span>            : 
-<span class="lineNum">     160 </span>            :     for(int i = 0; i &lt; 10; i++){
-<span class="lineNum">     161 </span>            :         int key = 1;
-<span class="lineNum">     162 </span>            :         k = kh_get(int2long, h, key); 
-<span class="lineNum">     163 </span>            :         //if (k == kh_end(h)){
-<span class="lineNum">     164 </span>            :         //    // If a key is absent node == end of table
-<span class="lineNum">     165 </span>            :         //    k = kh_put(int2long, h, key, &amp;ret); // add the key
-<span class="lineNum">     166 </span>            :         //    kh_value(h, k) = 1; // set the value of the key
-<span class="lineNum">     167 </span>            :         //} else {
-<span class="lineNum">     168 </span>            :             // If key found, increment value
-<span class="lineNum">     169 </span>            :             kh_value(h, k) += 1;
-<span class="lineNum">     170 </span>            :         //}
-<span class="lineNum">     171 </span>            :     }
-<span class="lineNum">     172 </span>            :     printf(&quot;Buckets %d\n&quot;, kh_size(h));
-<span class="lineNum">     173 </span>            : 
-<span class="lineNum">     174 </span>            :     for (k = kh_begin(h); k != kh_end(h); ++k) {
-<span class="lineNum">     175 </span>            :         if (kh_exist(h, k)) {
-<span class="lineNum">     176 </span>            :             const int key = kh_key(h,k);
-<span class="lineNum">     177 </span>            :             long tval = kh_value(h, k);
-<span class="lineNum">     178 </span>            :             printf(&quot;key=%d  val=%ld\n&quot;, key, tval);
-<span class="lineNum">     179 </span>            :         }
-<span class="lineNum">     180 </span>            :     }
-<span class="lineNum">     181 </span>            : 
-<span class="lineNum">     182 </span>            :     kh_destroy(int2long, h);              // deallocate the hash table
-<span class="lineNum">     183 </span>            :     return 0;
-<span class="lineNum">     184 </span>            :     */
-<span class="lineNum">     185 </span>            : 
+<span class="lineNum">     120 </span><span class="lineCov">        110 :     for(int i = 0; i &lt;= nfiles; i++){</span>
+<span class="lineNum">     121 </span><span class="lineCov">         74 :         free(args.infile[i]);</span>
+<span class="lineNum">     122 </span>            :     }
+<span class="lineNum">     123 </span><span class="lineCov">         36 :     free(args.infile);</span>
+<span class="lineNum">     124 </span>            : 
+<span class="lineNum">     125 </span><span class="lineCov">         36 :     time_t t1= time(NULL);</span>
+<span class="lineNum">     126 </span><span class="lineCov">         36 :     fprintf(stderr, &quot;# Proc time %s\n&quot;, format_seconds(t1-t0));</span>
+<span class="lineNum">     127 </span><span class="lineCov">         36 :     return err;</span>
+<span class="lineNum">     128 </span>            : }
+<span class="lineNum">     129 </span>            :     /*
+<span class="lineNum">     130 </span>            :     char xseq[] = &quot;ABCAACACACACABABABAACACBABABABABBABABA&quot;;
+<span class="lineNum">     131 </span>            :     
+<span class="lineNum">     132 </span>            :     int kmer_size = 1;
+<span class="lineNum">     133 </span>            :     int ret; 
+<span class="lineNum">     134 </span>            :     khiter_t k;
+<span class="lineNum">     135 </span>            :     khash_t(khStrLong) *h = kh_init(khStrLong); // create a hashtable
+<span class="lineNum">     136 </span>            : 
+<span class="lineNum">     137 </span>            :     for(int i = 0; i &lt; 10000000; i++){
+<span class="lineNum">     138 </span>            :         int len = strlen(xseq);
+<span class="lineNum">     139 </span>            :         for(int j = 0; j &lt; len - kmer_size + 1; j++){
+<span class="lineNum">     140 </span>            :             char kmer[kmer_size+1];  
+<span class="lineNum">     141 </span>            :             memcpy(kmer, xseq+j, kmer_size);
+<span class="lineNum">     142 </span>            :             kmer[kmer_size] = '\0';
+<span class="lineNum">     143 </span>            :             k = kh_get(khStrLong, h, kmer);
+<span class="lineNum">     144 </span>            :             if(k == kh_end(h)){
+<span class="lineNum">     145 </span>            :                 k = kh_put(khStrLong, h, strdup(kmer), &amp;ret);
+<span class="lineNum">     146 </span>            :                 kh_value(h, k) = 0;
+<span class="lineNum">     147 </span>            :             }
+<span class="lineNum">     148 </span>            :             kh_value(h, k) += 1;
+<span class="lineNum">     149 </span>            :         }
+<span class="lineNum">     150 </span>            :     }
+<span class="lineNum">     151 </span>            :     for (k = kh_begin(h); k != kh_end(h); ++k) {
+<span class="lineNum">     152 </span>            :         if (kh_exist(h, k)) {
+<span class="lineNum">     153 </span>            :             const char *key = kh_key(h,k);
+<span class="lineNum">     154 </span>            :             long tval = kh_value(h, k);
+<span class="lineNum">     155 </span>            :             printf(&quot;key=%s  val=%ld\n&quot;, key, tval);
+<span class="lineNum">     156 </span>            :             // free((char*)kh_key(h, k));
+<span class="lineNum">     157 </span>            :         }
+<span class="lineNum">     158 </span>            :     }
+<span class="lineNum">     159 </span>            :     kh_destroy(khStrLong, h);
+<span class="lineNum">     160 </span>            :     return 0;
+<span class="lineNum">     161 </span>            :     */    
+<span class="lineNum">     162 </span>            :     /*
+<span class="lineNum">     163 </span>            :     k = kh_put(khStrLong, h, 1, &amp;ret); // add the key
+<span class="lineNum">     164 </span>            : 
+<span class="lineNum">     165 </span>            :     for(int i = 0; i &lt; 10; i++){
+<span class="lineNum">     166 </span>            :         int key = 1;
+<span class="lineNum">     167 </span>            :         k = kh_get(int2long, h, key); 
+<span class="lineNum">     168 </span>            :         //if (k == kh_end(h)){
+<span class="lineNum">     169 </span>            :         //    // If a key is absent node == end of table
+<span class="lineNum">     170 </span>            :         //    k = kh_put(int2long, h, key, &amp;ret); // add the key
+<span class="lineNum">     171 </span>            :         //    kh_value(h, k) = 1; // set the value of the key
+<span class="lineNum">     172 </span>            :         //} else {
+<span class="lineNum">     173 </span>            :             // If key found, increment value
+<span class="lineNum">     174 </span>            :             kh_value(h, k) += 1;
+<span class="lineNum">     175 </span>            :         //}
+<span class="lineNum">     176 </span>            :     }
+<span class="lineNum">     177 </span>            :     printf(&quot;Buckets %d\n&quot;, kh_size(h));
+<span class="lineNum">     178 </span>            : 
+<span class="lineNum">     179 </span>            :     for (k = kh_begin(h); k != kh_end(h); ++k) {
+<span class="lineNum">     180 </span>            :         if (kh_exist(h, k)) {
+<span class="lineNum">     181 </span>            :             const int key = kh_key(h,k);
+<span class="lineNum">     182 </span>            :             long tval = kh_value(h, k);
+<span class="lineNum">     183 </span>            :             printf(&quot;key=%d  val=%ld\n&quot;, key, tval);
+<span class="lineNum">     184 </span>            :         }
+<span class="lineNum">     185 </span>            :     }
+<span class="lineNum">     186 </span>            : 
+<span class="lineNum">     187 </span>            :     kh_destroy(int2long, h);              // deallocate the hash table
+<span class="lineNum">     188 </span>            :     return 0;
+<span class="lineNum">     189 </span>            :     */
+<span class="lineNum">     190 </span>            : 
 </pre>
       </td>
     </tr>

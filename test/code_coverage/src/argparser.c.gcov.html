@@ -31,13 +31,13 @@
             <td class="headerValue">gcov.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntry">60</td>
-            <td class="headerCovTableEntry">62</td>
-            <td class="headerCovTableEntryHi">96.8 %</td>
+            <td class="headerCovTableEntry">69</td>
+            <td class="headerCovTableEntry">71</td>
+            <td class="headerCovTableEntryHi">97.2 %</td>
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2020-01-19 17:32:52</td>
+            <td class="headerValue">2020-01-26 09:33:46</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">2</td>
@@ -62,107 +62,125 @@
 <pre class="source">
 <a name="1"><span class="lineNum">       1 </span>            : #include &lt;string.h&gt;</a>
 <span class="lineNum">       2 </span>            : 
-<span class="lineNum">       3 </span>            : struct args {
-<span class="lineNum">       4 </span>            :     char *version;
-<span class="lineNum">       5 </span>            :     int nx_ints[101]; 
-<span class="lineNum">       6 </span>            :     char *infile;
-<span class="lineNum">       7 </span>            :     char *outfile;
-<span class="lineNum">       8 </span>            :     int n_stop;
-<a name="9"><span class="lineNum">       9 </span>            : };</a>
-<span class="lineNum">      10 </span>            : 
-<span class="lineNum">      11 </span><span class="lineCov">         38 : void tokenize_nx(char *str, int ints[]){</span>
-<span class="lineNum">      12 </span><span class="lineCov">         38 :     char *token = strtok(str, &quot;,&quot;);</span>
-<span class="lineNum">      13 </span><span class="lineCov">         38 :     int nnx = 0;</span>
-<span class="lineNum">      14 </span><span class="lineCov">        242 :     while (token != NULL) {</span>
-<span class="lineNum">      15 </span><span class="lineCov">        170 :         int tok = atoi(token);</span>
-<span class="lineNum">      16 </span><span class="lineCov">        170 :         int is_dupl = 0;</span>
-<span class="lineNum">      17 </span><span class="lineCov">        492 :         for(int i = 0; i &lt; nnx; i++){</span>
-<span class="lineNum">      18 </span>            :             // Check for duplicates and skip them.
-<span class="lineNum">      19 </span><span class="lineCov">        324 :             if(tok == ints[i]){</span>
-<span class="lineNum">      20 </span><span class="lineCov">          2 :                 is_dupl = 1;</span>
-<span class="lineNum">      21 </span><span class="lineCov">          2 :                 break;</span>
-<span class="lineNum">      22 </span>            :             }
-<span class="lineNum">      23 </span>            :         }
-<span class="lineNum">      24 </span><span class="lineCov">        170 :         if(! is_dupl){</span>
-<span class="lineNum">      25 </span><span class="lineCov">        168 :             if(tok &lt; 0 || tok &gt; 100){</span>
-<span class="lineNum">      26 </span><span class="lineCov">          4 :                 fprintf(stderr, &quot;Argument to -N must be &gt;= 0 and &lt;= 100\n&quot;);</span>
-<span class="lineNum">      27 </span><span class="lineCov">          4 :                 exit(1);</span>
-<span class="lineNum">      28 </span>            :             }
-<span class="lineNum">      29 </span><span class="lineCov">        164 :             if(nnx &gt; 101){</span>
-<span class="lineNum">      30 </span><span class="lineNoCov">          0 :                 fprintf(stderr, &quot;Too many arguments to -s\n&quot;);</span>
-<span class="lineNum">      31 </span><span class="lineNoCov">          0 :                 exit(1);</span>
-<span class="lineNum">      32 </span>            :             }
-<span class="lineNum">      33 </span><span class="lineCov">        164 :             ints[nnx] = tok;</span>
-<span class="lineNum">      34 </span><span class="lineCov">        164 :             nnx++;</span>
-<span class="lineNum">      35 </span>            :         }
-<span class="lineNum">      36 </span><span class="lineCov">        166 :         token = strtok(NULL, &quot;,&quot;);</span>
-<span class="lineNum">      37 </span>            :     }
-<span class="lineNum">      38 </span><span class="lineCov">         34 :     ints[nnx] = -1; // signal end of user's arguments</span>
-<a name="39"><span class="lineNum">      39 </span><span class="lineCov">         34 : }</span></a>
-<span class="lineNum">      40 </span>            : 
-<span class="lineNum">      41 </span><span class="lineCov">         46 : struct args argparser(int argc, char **argv[]){</span>
-<span class="lineNum">      42 </span>            :     
-<span class="lineNum">      43 </span>            :     // Default arguments 
-<span class="lineNum">      44 </span><span class="lineCov">         46 :     struct args args ={</span>
-<span class="lineNum">      45 </span>            :         .version = &quot;0.1.0&quot;, 
-<span class="lineNum">      46 </span>            :         .infile = &quot;-&quot;,
-<span class="lineNum">      47 </span>            :         .outfile = &quot;-&quot;, 
-<span class="lineNum">      48 </span>            :         .n_stop = -1
-<span class="lineNum">      49 </span>            :     };
-<span class="lineNum">      50 </span><span class="lineCov">         46 :     char nx_ints[1000] = &quot;0,25,50,75,90&quot;;</span>
+<span class="lineNum">       3 </span>            : # define nxstr &quot;0,25,50,75,100&quot;
+<span class="lineNum">       4 </span>            : 
+<span class="lineNum">       5 </span>            : struct args {
+<span class="lineNum">       6 </span>            :     char *version;
+<span class="lineNum">       7 </span>            :     int nx_ints[101]; 
+<span class="lineNum">       8 </span>            :     char **infile;
+<span class="lineNum">       9 </span>            :     char *outfile;
+<span class="lineNum">      10 </span>            :     long n_stop;
+<a name="11"><span class="lineNum">      11 </span>            : };</a>
+<span class="lineNum">      12 </span>            : 
+<span class="lineNum">      13 </span><span class="lineCov">         60 : void tokenize_nx(char *str, int ints[]){</span>
+<span class="lineNum">      14 </span><span class="lineCov">         60 :     char *token = strtok(str, &quot;,&quot;);</span>
+<span class="lineNum">      15 </span><span class="lineCov">         60 :     int nnx = 0;</span>
+<span class="lineNum">      16 </span><span class="lineCov">        390 :     while (token != NULL) {</span>
+<span class="lineNum">      17 </span><span class="lineCov">        274 :         int tok = atoi(token);</span>
+<span class="lineNum">      18 </span><span class="lineCov">        274 :         int is_dupl = 0;</span>
+<span class="lineNum">      19 </span><span class="lineCov">        798 :         for(int i = 0; i &lt; nnx; i++){</span>
+<span class="lineNum">      20 </span>            :             // Check for duplicates and skip them.
+<span class="lineNum">      21 </span><span class="lineCov">        526 :             if(tok == ints[i]){</span>
+<span class="lineNum">      22 </span><span class="lineCov">          2 :                 is_dupl = 1;</span>
+<span class="lineNum">      23 </span><span class="lineCov">          2 :                 break;</span>
+<span class="lineNum">      24 </span>            :             }
+<span class="lineNum">      25 </span>            :         }
+<span class="lineNum">      26 </span><span class="lineCov">        274 :         if(! is_dupl){</span>
+<span class="lineNum">      27 </span><span class="lineCov">        272 :             if(tok &lt; 0 || tok &gt; 100){</span>
+<span class="lineNum">      28 </span><span class="lineCov">          4 :                 fprintf(stderr, &quot;Argument to -N must be &gt;= 0 and &lt;= 100\n&quot;);</span>
+<span class="lineNum">      29 </span><span class="lineCov">          4 :                 exit(1);</span>
+<span class="lineNum">      30 </span>            :             }
+<span class="lineNum">      31 </span><span class="lineCov">        268 :             if(nnx &gt; 101){</span>
+<span class="lineNum">      32 </span><span class="lineNoCov">          0 :                 fprintf(stderr, &quot;Too many arguments to -s\n&quot;);</span>
+<span class="lineNum">      33 </span><span class="lineNoCov">          0 :                 exit(1);</span>
+<span class="lineNum">      34 </span>            :             }
+<span class="lineNum">      35 </span><span class="lineCov">        268 :             ints[nnx] = tok;</span>
+<span class="lineNum">      36 </span><span class="lineCov">        268 :             nnx++;</span>
+<span class="lineNum">      37 </span>            :         }
+<span class="lineNum">      38 </span><span class="lineCov">        270 :         token = strtok(NULL, &quot;,&quot;);</span>
+<span class="lineNum">      39 </span>            :     }
+<span class="lineNum">      40 </span><span class="lineCov">         56 :     ints[nnx] = -1; // signal end of user's arguments</span>
+<a name="41"><span class="lineNum">      41 </span><span class="lineCov">         56 : }</span></a>
+<span class="lineNum">      42 </span>            : 
+<span class="lineNum">      43 </span><span class="lineCov">         52 : struct args argparser(int argc, char **argv[]){</span>
+<span class="lineNum">      44 </span>            :    
+<span class="lineNum">      45 </span>            :     // Default arguments 
+<span class="lineNum">      46 </span><span class="lineCov">         52 :     struct args args ={</span>
+<span class="lineNum">      47 </span>            :         .version = &quot;0.1.0&quot;, 
+<span class="lineNum">      48 </span>            :         .outfile = &quot;-&quot;, 
+<span class="lineNum">      49 </span>            :         .n_stop = -1
+<span class="lineNum">      50 </span>            :     };
 <span class="lineNum">      51 </span>            : 
-<span class="lineNum">      52 </span>            :     int index;
-<span class="lineNum">      53 </span>            :     int opt;
-<span class="lineNum">      54 </span><span class="lineCov">         46 :     opterr = 0;</span>
-<span class="lineNum">      55 </span>            : 
-<span class="lineNum">      56 </span><span class="lineCov">        106 :     while ((opt = getopt (argc, *argv, &quot;s:N:hVo:&quot;)) != -1)</span>
-<span class="lineNum">      57 </span><span class="lineCov">         22 :         switch (opt)</span>
-<span class="lineNum">      58 </span>            :         {
-<span class="lineNum">      59 </span><span class="lineCov">          2 :             case 's':</span>
-<span class="lineNum">      60 </span><span class="lineCov">          2 :                 args.n_stop = atoi(optarg);</span>
-<span class="lineNum">      61 </span><span class="lineCov">          2 :                 break;</span>
-<span class="lineNum">      62 </span><span class="lineCov">          6 :             case 'N':</span>
-<span class="lineNum">      63 </span><span class="lineCov">          6 :                 strcpy(nx_ints, optarg);</span>
-<span class="lineNum">      64 </span><span class="lineCov">          6 :                 break;</span>
-<span class="lineNum">      65 </span><span class="lineCov">          6 :             case 'o':</span>
-<span class="lineNum">      66 </span><span class="lineCov">          6 :                 args.outfile = optarg;</span>
-<span class="lineNum">      67 </span><span class="lineCov">          6 :                 break;</span>
-<span class="lineNum">      68 </span><span class="lineCov">          2 :             case 'V':</span>
-<span class="lineNum">      69 </span><span class="lineCov">          2 :                 printf(&quot;%s\n&quot;, args.version);</span>
-<span class="lineNum">      70 </span><span class="lineCov">          2 :                 exit(0);</span>
-<span class="lineNum">      71 </span><span class="lineCov">          2 :             case 'h':</span>
-<span class="lineNum">      72 </span><span class="lineCov">          2 :                 printf(&quot;Usage: fxstat [OPTION] ... [FILE]\n&quot;);</span>
-<span class="lineNum">      73 </span><span class="lineCov">          2 :                 printf(&quot;Collect sequence statistics from fastq/fasta file\n&quot;);</span>
-<span class="lineNum">      74 </span><span class="lineCov">          2 :                 printf(&quot;\n&quot;);</span>
-<span class="lineNum">      75 </span><span class="lineCov">          2 :                 printf(&quot;  -s  Stop after this many sequences [%d]\n&quot;, args.n_stop);</span>
-<span class="lineNum">      76 </span><span class="lineCov">          2 :                 printf(&quot;  -N  Comma-separated thresholds for Nx statistics [%s]\n&quot;, nx_ints);</span>
-<span class="lineNum">      77 </span><span class="lineCov">          2 :                 printf(&quot;  -o  output file [%s]\n&quot;, args.outfile);</span>
-<span class="lineNum">      78 </span><span class="lineCov">          2 :                 printf(&quot;  -V  print version\n&quot;);</span>
-<span class="lineNum">      79 </span><span class="lineCov">          2 :                 printf(&quot;\n&quot;);</span>
-<span class="lineNum">      80 </span><span class="lineCov">          2 :                 printf(&quot;\</span>
-<span class="lineNum">      81 </span>            : With no FILE, or when FILE is -, read standard input.\n\
-<span class="lineNum">      82 </span>            : Input may be gzip'd compressed. Base qualities must\n\
-<span class="lineNum">      83 </span>            : be in phred scale. There is no check for that!\n&quot;);
-<span class="lineNum">      84 </span><span class="lineCov">          2 :                 printf(&quot;\n&quot;);</span>
-<span class="lineNum">      85 </span><span class="lineCov">          2 :                 printf(&quot;Version %s\n&quot;, args.version);</span>
-<span class="lineNum">      86 </span><span class="lineCov">          2 :                 exit(0);</span>
-<span class="lineNum">      87 </span><span class="lineCov">          4 :             case '?':</span>
-<span class="lineNum">      88 </span><span class="lineCov">          4 :                 if (optopt == 'N' || optopt == 's' || optopt == 'o'){</span>
-<span class="lineNum">      89 </span><span class="lineCov">          2 :                     fprintf (stderr, &quot;Option -%c requires an argument.\n&quot;, optopt);</span>
-<span class="lineNum">      90 </span>            :                 } else {
-<span class="lineNum">      91 </span><span class="lineCov">          2 :                     fprintf (stderr, &quot;Unknown option `-%c'\n&quot;, optopt);</span>
-<span class="lineNum">      92 </span>            :                 }
-<span class="lineNum">      93 </span>            :             default:
-<span class="lineNum">      94 </span><span class="lineCov">          4 :                 exit(1);</span>
-<span class="lineNum">      95 </span>            :         }
-<span class="lineNum">      96 </span>            : 
-<span class="lineNum">      97 </span><span class="lineCov">         66 :     for(index = optind; index &lt; argc; index++){</span>
-<span class="lineNum">      98 </span><span class="lineCov">         28 :         args.infile = (*argv)[index];</span>
-<span class="lineNum">      99 </span>            :     }
-<span class="lineNum">     100 </span><span class="lineCov">         38 :     tokenize_nx(nx_ints, args.nx_ints); </span>
-<span class="lineNum">     101 </span><span class="lineCov">         34 :     return args; </span>
-<span class="lineNum">     102 </span>            : }
-<span class="lineNum">     103 </span>            : 
+<span class="lineNum">      52 </span><span class="lineCov">         52 :     char nx_ints[1000] = nxstr;</span>
+<span class="lineNum">      53 </span><span class="lineCov">         52 :     tokenize_nx(nx_ints, args.nx_ints); </span>
+<span class="lineNum">      54 </span>            : 
+<span class="lineNum">      55 </span>            :     int opt;
+<span class="lineNum">      56 </span><span class="lineCov">         52 :     opterr = 0;</span>
+<span class="lineNum">      57 </span>            : 
+<span class="lineNum">      58 </span><span class="lineCov">        116 :     while ((opt = getopt (argc, *argv, &quot;s:N:hVo:&quot;)) != -1)</span>
+<span class="lineNum">      59 </span><span class="lineCov">         24 :         switch (opt)</span>
+<span class="lineNum">      60 </span>            :         {
+<span class="lineNum">      61 </span><span class="lineCov">          2 :             case 's':</span>
+<span class="lineNum">      62 </span><span class="lineCov">          2 :                 args.n_stop = atol(optarg);</span>
+<span class="lineNum">      63 </span><span class="lineCov">          2 :                 break;</span>
+<span class="lineNum">      64 </span><span class="lineCov">          8 :             case 'N':</span>
+<span class="lineNum">      65 </span><span class="lineCov">          8 :                 strcpy(nx_ints, optarg);</span>
+<span class="lineNum">      66 </span><span class="lineCov">          8 :                 tokenize_nx(nx_ints, args.nx_ints); </span>
+<span class="lineNum">      67 </span><span class="lineCov">          4 :                 break;</span>
+<span class="lineNum">      68 </span><span class="lineCov">          6 :             case 'o':</span>
+<span class="lineNum">      69 </span><span class="lineCov">          6 :                 args.outfile = optarg;</span>
+<span class="lineNum">      70 </span><span class="lineCov">          6 :                 break;</span>
+<span class="lineNum">      71 </span><span class="lineCov">          2 :             case 'V':</span>
+<span class="lineNum">      72 </span><span class="lineCov">          2 :                 printf(&quot;%s\n&quot;, args.version);</span>
+<span class="lineNum">      73 </span><span class="lineCov">          2 :                 exit(0);</span>
+<span class="lineNum">      74 </span><span class="lineCov">          2 :             case 'h':</span>
+<span class="lineNum">      75 </span><span class="lineCov">          2 :                 printf(&quot;Usage: fxstat [OPTION]... [FILE]...\n&quot;);</span>
+<span class="lineNum">      76 </span><span class="lineCov">          2 :                 printf(&quot;Collect sequence statistics from fastq/fasta file\n&quot;);</span>
+<span class="lineNum">      77 </span><span class="lineCov">          2 :                 printf(&quot;\n&quot;);</span>
+<span class="lineNum">      78 </span><span class="lineCov">          2 :                 printf(&quot;  -s  Stop after this many sequences from each FILE [%ld]\n&quot;, args.n_stop);</span>
+<span class="lineNum">      79 </span><span class="lineCov">          2 :                 printf(&quot;  -N  Comma-separated thresholds for Nx statistics [%s]\n&quot;, nxstr);</span>
+<span class="lineNum">      80 </span><span class="lineCov">          2 :                 printf(&quot;  -o  output file [%s]\n&quot;, args.outfile);</span>
+<span class="lineNum">      81 </span><span class="lineCov">          2 :                 printf(&quot;  -V  print version\n&quot;);</span>
+<span class="lineNum">      82 </span><span class="lineCov">          2 :                 printf(&quot;\n&quot;);</span>
+<span class="lineNum">      83 </span><span class="lineCov">          2 :                 printf(&quot;\</span>
+<span class="lineNum">      84 </span>            : With no FILE, or when FILE is -, read standard input.\n\
+<span class="lineNum">      85 </span>            : Input may be gzip'd compressed. Base qualities must\n\
+<span class="lineNum">      86 </span>            : be in phred scale. There is no check for that!\n&quot;);
+<span class="lineNum">      87 </span><span class="lineCov">          2 :                 printf(&quot;\n&quot;);</span>
+<span class="lineNum">      88 </span><span class="lineCov">          2 :                 printf(&quot;Version %s\n&quot;, args.version);</span>
+<span class="lineNum">      89 </span><span class="lineCov">          2 :                 exit(0);</span>
+<span class="lineNum">      90 </span><span class="lineCov">          4 :             case '?':</span>
+<span class="lineNum">      91 </span><span class="lineCov">          4 :                 if (optopt == 'N' || optopt == 's' || optopt == 'o'){</span>
+<span class="lineNum">      92 </span><span class="lineCov">          2 :                     fprintf (stderr, &quot;Option -%c requires an argument.\n&quot;, optopt);</span>
+<span class="lineNum">      93 </span>            :                 } else {
+<span class="lineNum">      94 </span><span class="lineCov">          2 :                     fprintf (stderr, &quot;Unknown option `-%c'\n&quot;, optopt);</span>
+<span class="lineNum">      95 </span>            :                 }
+<span class="lineNum">      96 </span>            :             default:
+<span class="lineNum">      97 </span><span class="lineCov">          4 :                 exit(1);</span>
+<span class="lineNum">      98 </span>            :         }
+<span class="lineNum">      99 </span>            :     
+<span class="lineNum">     100 </span><span class="lineCov">         40 :     int num_pos_args = argc - optind;</span>
+<span class="lineNum">     101 </span>            : 
+<span class="lineNum">     102 </span>            :     // Use calloc to avoid valgrind complain about un-initialized value. We
+<span class="lineNum">     103 </span>            :     // alloc an extra pointer with NULL so we can iterate the list and stop
+<span class="lineNum">     104 </span>            :     // when NULL found.
+<span class="lineNum">     105 </span><span class="lineCov">         40 :     args.infile = calloc(num_pos_args == 0 ? 2 : num_pos_args + 1, sizeof(*args.infile)); </span>
+<span class="lineNum">     106 </span><span class="lineCov">         40 :     if(num_pos_args == 0){</span>
+<span class="lineNum">     107 </span><span class="lineCov">         12 :         char *stdinput = &quot;-&quot;;</span>
+<span class="lineNum">     108 </span><span class="lineCov">         12 :         args.infile[0] = malloc(strlen(stdinput) + 1);</span>
+<span class="lineNum">     109 </span><span class="lineCov">         12 :         memcpy(args.infile[0], stdinput, strlen(stdinput) + 1);</span>
+<span class="lineNum">     110 </span>            :     } else {
+<span class="lineNum">     111 </span><span class="lineCov">         58 :         for(int i = 0; i &lt; num_pos_args; ++i) {</span>
+<span class="lineNum">     112 </span>            :             // Remaining positional args
+<span class="lineNum">     113 </span><span class="lineCov">         30 :             int len = strlen((*argv)[i + optind]) + 1;</span>
+<span class="lineNum">     114 </span><span class="lineCov">         30 :             args.infile[i] = malloc(len);</span>
+<span class="lineNum">     115 </span><span class="lineCov">         30 :             memcpy(args.infile[i], (*argv)[i + optind], len);</span>
+<span class="lineNum">     116 </span>            :         }
+<span class="lineNum">     117 </span>            :     }
+<span class="lineNum">     118 </span>            :     
+<span class="lineNum">     119 </span><span class="lineCov">         40 :     return args; </span>
+<span class="lineNum">     120 </span>            : }
+<span class="lineNum">     121 </span>            : 
 </pre>
       </td>
     </tr>

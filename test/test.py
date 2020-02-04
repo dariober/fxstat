@@ -12,10 +12,6 @@ class Fqstat(unittest.TestCase):
     def setUp(self):
         sys.stderr.write('\n' + self.id().split('.')[-1] + ' ') # Print test name
 
-    #def tearDown(self):
-    #    if os.path.exists('test_out'):
-    #        shutil.rmtree('test_out')
-
     def testHelp(self):
         p= sp.Popen('./fxstat -h',
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
@@ -81,7 +77,7 @@ class Fqstat(unittest.TestCase):
         self.assertEqual(0, p.returncode)
         self.assertTrue(re.search('N0 +60', stdout.decode()))
         self.assertTrue(re.search('N50 +42', stdout.decode()))
-        self.assertTrue(re.search('N90 +9', stdout.decode()))
+        self.assertTrue(re.search('N100 +9', stdout.decode()))
 
         p= sp.Popen('./fxstat -N 33,66,33 ../data/basic.fq',
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
@@ -109,7 +105,7 @@ class Fqstat(unittest.TestCase):
         stdout, stderr= p.communicate()
         self.assertEqual(0, p.returncode)
         self.assertTrue(re.search('A +35.69', stdout.decode()))
-        self.assertTrue(re.search('CG +37.25', stdout.decode()))
+        self.assertTrue(re.search('GC +37.25', stdout.decode()))
         self.assertTrue(re.search('N +1.18', stdout.decode()))
 
     def testLongRead(self):
@@ -124,6 +120,13 @@ class Fqstat(unittest.TestCase):
         stdout, stderr= p.communicate()
         self.assertEqual(0, p.returncode)
         self.assertTrue(re.search('n_bases +40000\n', stdout.decode()))
+
+    def testGzipUnexpectedEOF(self):
+        p= sp.Popen('gzip -c ../data/long.fq | head -c 100 | ./fxstat',
+                shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdout, stderr= p.communicate()
+        self.assertTrue(p.returncode != 0);
+        self.assertEqual("", stdout.decode());
 
     def testWriteToFile(self):
         p= sp.Popen('./fxstat ../data/basic.fq -o out.txt',
@@ -187,9 +190,26 @@ class Fqstat(unittest.TestCase):
         self.assertEqual('', stderr.decode())
 
     def testZeroLengthRead(self):
-        pass 
-    def testTruncatedGZip(self):
-        pass
+        p= sp.Popen('./fxstat -N 0,100 ../data/zerolength.fq',
+                shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdout, stderr= p.communicate()
+        self.assertEqual(0, p.returncode)
+        self.assertTrue(re.search('n_seq +3\n', stdout.decode()))
+        self.assertTrue(re.search('mean_length +10.00\n', stdout.decode()))
+        # NB: N100 reports the shortest read with length >0
+        self.assertTrue(re.search('N100 +10', stdout.decode()))
+        self.assertTrue(re.search('N0 +20', stdout.decode()))
+
+    def testMultipleFiles(self):
+        p= sp.Popen('./fxstat ../data/basic.fq ../data/basic.fa',
+                shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdout, stderr= p.communicate()
+        self.assertEqual(0, p.returncode)
+        self.assertTrue("[../data/basic.fq]" in stdout.decode())
+        self.assertTrue("[../data/basic.fa]" in stdout.decode())
+        self.assertTrue(re.search('n_bases +181', stdout.decode()))
+        self.assertTrue(re.search('n_bases +255', stdout.decode()))
+
     def testUnrecognizedInputError(self):
         pass
 

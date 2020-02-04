@@ -1,11 +1,13 @@
 #include <string.h>
 
+# define nxstr "0,25,50,75,100"
+
 struct args {
     char *version;
     int nx_ints[101]; 
-    char *infile;
+    char **infile;
     char *outfile;
-    int n_stop;
+    long n_stop;
 };
 
 void tokenize_nx(char *str, int ints[]){
@@ -39,17 +41,17 @@ void tokenize_nx(char *str, int ints[]){
 }
 
 struct args argparser(int argc, char **argv[]){
-    
+   
     // Default arguments 
     struct args args ={
         .version = "0.1.0", 
-        .infile = "-",
         .outfile = "-", 
         .n_stop = -1
     };
-    char nx_ints[1000] = "0,25,50,75,90";
 
-    int index;
+    char nx_ints[1000] = nxstr;
+    tokenize_nx(nx_ints, args.nx_ints); 
+
     int opt;
     opterr = 0;
 
@@ -57,10 +59,11 @@ struct args argparser(int argc, char **argv[]){
         switch (opt)
         {
             case 's':
-                args.n_stop = atoi(optarg);
+                args.n_stop = atol(optarg);
                 break;
             case 'N':
                 strcpy(nx_ints, optarg);
+                tokenize_nx(nx_ints, args.nx_ints); 
                 break;
             case 'o':
                 args.outfile = optarg;
@@ -69,11 +72,11 @@ struct args argparser(int argc, char **argv[]){
                 printf("%s\n", args.version);
                 exit(0);
             case 'h':
-                printf("Usage: fxstat [OPTION] ... [FILE]\n");
+                printf("Usage: fxstat [OPTION]... [FILE]...\n");
                 printf("Collect sequence statistics from fastq/fasta file\n");
                 printf("\n");
-                printf("  -s  Stop after this many sequences [%d]\n", args.n_stop);
-                printf("  -N  Comma-separated thresholds for Nx statistics [%s]\n", nx_ints);
+                printf("  -s  Stop after this many sequences from each FILE [%ld]\n", args.n_stop);
+                printf("  -N  Comma-separated thresholds for Nx statistics [%s]\n", nxstr);
                 printf("  -o  output file [%s]\n", args.outfile);
                 printf("  -V  print version\n");
                 printf("\n");
@@ -93,11 +96,26 @@ be in phred scale. There is no check for that!\n");
             default:
                 exit(1);
         }
+    
+    int num_pos_args = argc - optind;
 
-    for(index = optind; index < argc; index++){
-        args.infile = (*argv)[index];
+    // Use calloc to avoid valgrind complain about un-initialized value. We
+    // alloc an extra pointer with NULL so we can iterate the list and stop
+    // when NULL found.
+    args.infile = calloc(num_pos_args == 0 ? 2 : num_pos_args + 1, sizeof(*args.infile)); 
+    if(num_pos_args == 0){
+        char *stdinput = "-";
+        args.infile[0] = malloc(strlen(stdinput) + 1);
+        memcpy(args.infile[0], stdinput, strlen(stdinput) + 1);
+    } else {
+        for(int i = 0; i < num_pos_args; ++i) {
+            // Remaining positional args
+            int len = strlen((*argv)[i + optind]) + 1;
+            args.infile[i] = malloc(len);
+            memcpy(args.infile[i], (*argv)[i + optind], len);
+        }
     }
-    tokenize_nx(nx_ints, args.nx_ints); 
+    
     return args; 
 }
 
