@@ -5,7 +5,8 @@
 <!-- vim-markdown-toc GFM -->
 
 * [Compile and setup](#compile-and-setup)
-* [Usage](#usage)
+* [Usage & Output](#usage--output)
+* [Performance](#performance)
 * [Unit tests and code coverage](#unit-tests-and-code-coverage)
 
 <!-- vim-markdown-toc -->
@@ -27,8 +28,8 @@ Then move the `fxstat` executable to a directory of your choice like `$HOME/bin/
 If you are on a Unix system, all the requirements should be satisfied as fxstat
 depends only on gcc for compilation and standard C libraries.
 
-Usage
-=====
+Usage & Output
+==============
 
 Usage should be straightforward. Assuming `fxstat` is on your `PATH` (if not, use `path/to/fxstat`):
 
@@ -36,6 +37,61 @@ Usage should be straightforward. Assuming `fxstat` is on your `PATH` (if not, us
 fxstat -h
 fxstat reads.fastq.gz
 cat reads.fastq | fxstat
+```
+
+The output should be self explanatory:
+
+```
+[53oxa1_fast_nano.fastq.gz]
+n_seq              35028
+n_bases            365454001
+mean_length        10433.20
+median_length      8224.50
+mean_read_quality  10.40
+N0                 68226  # MAX length
+N25                23612
+N50                17594
+N75                11909
+N100               57  # MIN length > 0
+A                  24.87%
+T                  24.76%
+C                  25.05%
+G                  25.32%
+N                  0.00%
+GC                 50.37%
+# Proc time 00:00:07
+```
+
+The [N50](https://en.wikipedia.org/wiki/N50,_L50,_and_related_statistics) is
+the sequence length of the shortest read at 50% of the total read length. Other
+Nx statistics are defined similarly for other thresholds.
+
+Performance
+===========
+
+Speed and ease of use should be the main features of `fxstat`. Quick & dirty
+benchmark on v0.1.0 commit 8c5290c. Test file is 370 Mbytes (compressed), 365
+million bases:
+
+```
+time zcat 53oxa1_fast_nano.fastq.gz | wc > /dev/null
+
+real    0m11.941s
+user    0m20.965s
+sys     0m0.395s
+
+time fxstat 53oxa1_fast_nano.fastq.gz > /dev/null
+
+real    0m7.572s
+user    0m7.486s
+sys     0m0.085s
+```
+
+Test file from:
+
+```
+curl -s https://sra-download.ncbi.nlm.nih.gov/traces/sra54/SRZ/011038/SRR11038963/53oxa1_fast_nano.fastq \
+| gzip > 53oxa1_fast_nano.fastq.gz
 ```
 
 Unit tests and code coverage
