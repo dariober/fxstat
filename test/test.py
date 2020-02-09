@@ -35,6 +35,32 @@ class Fqstat(unittest.TestCase):
         self.assertTrue(re.search('mean_length +28.33\n', stdout.decode()))
         self.assertTrue(re.search('n_bases +255\n', stdout.decode()))
 
+    def testCarriageReturn(self):
+        p= sp.Popen('./fxstat ../data/basic_crlf.fq',
+                shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdout, stderr= p.communicate()
+        self.assertEqual(0, p.returncode)
+        self.assertTrue(re.search('n_bases +255\n', stdout.decode()))
+
+    def testMedian(self):
+        p= sp.Popen('./fxstat ../data/basic.fq',
+                shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdout, stderr= p.communicate()
+        self.assertEqual(0, p.returncode)
+        self.assertTrue(re.search('median_length +21.00\n', stdout.decode()))
+
+        p= sp.Popen('cat ../data/basic.fq ../data/basic.fq | ./fxstat',
+                shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdout, stderr= p.communicate()
+        self.assertEqual(0, p.returncode)
+        self.assertTrue(re.search('median_length +21.00\n', stdout.decode()))
+
+        p= sp.Popen('head -n 16 ../data/basic.fq | ./fxstat',
+                shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdout, stderr= p.communicate()
+        self.assertEqual(0, p.returncode)
+        self.assertTrue(re.search('median_length +31.50\n', stdout.decode()))
+
     def testBasicFasta(self):
         p= sp.Popen('./fxstat ../data/basic.fa',
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)

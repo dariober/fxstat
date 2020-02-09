@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2020-01-26 09:33:46</td>
+            <td class="headerValue">2020-02-09 18:35:12</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">2</td>
@@ -72,52 +72,52 @@
 <span class="lineNum">      10 </span>            :     long n_stop;
 <a name="11"><span class="lineNum">      11 </span>            : };</a>
 <span class="lineNum">      12 </span>            : 
-<span class="lineNum">      13 </span><span class="lineCov">         60 : void tokenize_nx(char *str, int ints[]){</span>
-<span class="lineNum">      14 </span><span class="lineCov">         60 :     char *token = strtok(str, &quot;,&quot;);</span>
-<span class="lineNum">      15 </span><span class="lineCov">         60 :     int nnx = 0;</span>
-<span class="lineNum">      16 </span><span class="lineCov">        390 :     while (token != NULL) {</span>
-<span class="lineNum">      17 </span><span class="lineCov">        274 :         int tok = atoi(token);</span>
-<span class="lineNum">      18 </span><span class="lineCov">        274 :         int is_dupl = 0;</span>
-<span class="lineNum">      19 </span><span class="lineCov">        798 :         for(int i = 0; i &lt; nnx; i++){</span>
+<span class="lineNum">      13 </span><span class="lineCov">         68 : void tokenize_nx(char *str, int ints[]){</span>
+<span class="lineNum">      14 </span><span class="lineCov">         68 :     char *token = strtok(str, &quot;,&quot;);</span>
+<span class="lineNum">      15 </span><span class="lineCov">         68 :     int nnx = 0;</span>
+<span class="lineNum">      16 </span><span class="lineCov">        446 :     while (token != NULL) {</span>
+<span class="lineNum">      17 </span><span class="lineCov">        314 :         int tok = atoi(token);</span>
+<span class="lineNum">      18 </span><span class="lineCov">        314 :         int is_dupl = 0;</span>
+<span class="lineNum">      19 </span><span class="lineCov">        918 :         for(int i = 0; i &lt; nnx; i++){</span>
 <span class="lineNum">      20 </span>            :             // Check for duplicates and skip them.
-<span class="lineNum">      21 </span><span class="lineCov">        526 :             if(tok == ints[i]){</span>
+<span class="lineNum">      21 </span><span class="lineCov">        606 :             if(tok == ints[i]){</span>
 <span class="lineNum">      22 </span><span class="lineCov">          2 :                 is_dupl = 1;</span>
 <span class="lineNum">      23 </span><span class="lineCov">          2 :                 break;</span>
 <span class="lineNum">      24 </span>            :             }
 <span class="lineNum">      25 </span>            :         }
-<span class="lineNum">      26 </span><span class="lineCov">        274 :         if(! is_dupl){</span>
-<span class="lineNum">      27 </span><span class="lineCov">        272 :             if(tok &lt; 0 || tok &gt; 100){</span>
+<span class="lineNum">      26 </span><span class="lineCov">        314 :         if(! is_dupl){</span>
+<span class="lineNum">      27 </span><span class="lineCov">        312 :             if(tok &lt; 0 || tok &gt; 100){</span>
 <span class="lineNum">      28 </span><span class="lineCov">          4 :                 fprintf(stderr, &quot;Argument to -N must be &gt;= 0 and &lt;= 100\n&quot;);</span>
 <span class="lineNum">      29 </span><span class="lineCov">          4 :                 exit(1);</span>
 <span class="lineNum">      30 </span>            :             }
-<span class="lineNum">      31 </span><span class="lineCov">        268 :             if(nnx &gt; 101){</span>
+<span class="lineNum">      31 </span><span class="lineCov">        308 :             if(nnx &gt; 101){</span>
 <span class="lineNum">      32 </span><span class="lineNoCov">          0 :                 fprintf(stderr, &quot;Too many arguments to -s\n&quot;);</span>
 <span class="lineNum">      33 </span><span class="lineNoCov">          0 :                 exit(1);</span>
 <span class="lineNum">      34 </span>            :             }
-<span class="lineNum">      35 </span><span class="lineCov">        268 :             ints[nnx] = tok;</span>
-<span class="lineNum">      36 </span><span class="lineCov">        268 :             nnx++;</span>
+<span class="lineNum">      35 </span><span class="lineCov">        308 :             ints[nnx] = tok;</span>
+<span class="lineNum">      36 </span><span class="lineCov">        308 :             nnx++;</span>
 <span class="lineNum">      37 </span>            :         }
-<span class="lineNum">      38 </span><span class="lineCov">        270 :         token = strtok(NULL, &quot;,&quot;);</span>
+<span class="lineNum">      38 </span><span class="lineCov">        310 :         token = strtok(NULL, &quot;,&quot;);</span>
 <span class="lineNum">      39 </span>            :     }
-<span class="lineNum">      40 </span><span class="lineCov">         56 :     ints[nnx] = -1; // signal end of user's arguments</span>
-<a name="41"><span class="lineNum">      41 </span><span class="lineCov">         56 : }</span></a>
+<span class="lineNum">      40 </span><span class="lineCov">         64 :     ints[nnx] = -1; // signal end of user's arguments</span>
+<a name="41"><span class="lineNum">      41 </span><span class="lineCov">         64 : }</span></a>
 <span class="lineNum">      42 </span>            : 
-<span class="lineNum">      43 </span><span class="lineCov">         52 : struct args argparser(int argc, char **argv[]){</span>
+<span class="lineNum">      43 </span><span class="lineCov">         60 : struct args argparser(int argc, char **argv[]){</span>
 <span class="lineNum">      44 </span>            :    
 <span class="lineNum">      45 </span>            :     // Default arguments 
-<span class="lineNum">      46 </span><span class="lineCov">         52 :     struct args args ={</span>
+<span class="lineNum">      46 </span><span class="lineCov">         60 :     struct args args ={</span>
 <span class="lineNum">      47 </span>            :         .version = &quot;0.1.0&quot;, 
 <span class="lineNum">      48 </span>            :         .outfile = &quot;-&quot;, 
 <span class="lineNum">      49 </span>            :         .n_stop = -1
 <span class="lineNum">      50 </span>            :     };
 <span class="lineNum">      51 </span>            : 
-<span class="lineNum">      52 </span><span class="lineCov">         52 :     char nx_ints[1000] = nxstr;</span>
-<span class="lineNum">      53 </span><span class="lineCov">         52 :     tokenize_nx(nx_ints, args.nx_ints); </span>
+<span class="lineNum">      52 </span><span class="lineCov">         60 :     char nx_ints[1000] = nxstr;</span>
+<span class="lineNum">      53 </span><span class="lineCov">         60 :     tokenize_nx(nx_ints, args.nx_ints); </span>
 <span class="lineNum">      54 </span>            : 
 <span class="lineNum">      55 </span>            :     int opt;
-<span class="lineNum">      56 </span><span class="lineCov">         52 :     opterr = 0;</span>
+<span class="lineNum">      56 </span><span class="lineCov">         60 :     opterr = 0;</span>
 <span class="lineNum">      57 </span>            : 
-<span class="lineNum">      58 </span><span class="lineCov">        116 :     while ((opt = getopt (argc, *argv, &quot;s:N:hVo:&quot;)) != -1)</span>
+<span class="lineNum">      58 </span><span class="lineCov">        132 :     while ((opt = getopt (argc, *argv, &quot;s:N:hVo:&quot;)) != -1)</span>
 <span class="lineNum">      59 </span><span class="lineCov">         24 :         switch (opt)</span>
 <span class="lineNum">      60 </span>            :         {
 <span class="lineNum">      61 </span><span class="lineCov">          2 :             case 's':</span>
@@ -159,26 +159,26 @@
 <span class="lineNum">      97 </span><span class="lineCov">          4 :                 exit(1);</span>
 <span class="lineNum">      98 </span>            :         }
 <span class="lineNum">      99 </span>            :     
-<span class="lineNum">     100 </span><span class="lineCov">         40 :     int num_pos_args = argc - optind;</span>
+<span class="lineNum">     100 </span><span class="lineCov">         48 :     int num_pos_args = argc - optind;</span>
 <span class="lineNum">     101 </span>            : 
 <span class="lineNum">     102 </span>            :     // Use calloc to avoid valgrind complain about un-initialized value. We
 <span class="lineNum">     103 </span>            :     // alloc an extra pointer with NULL so we can iterate the list and stop
 <span class="lineNum">     104 </span>            :     // when NULL found.
-<span class="lineNum">     105 </span><span class="lineCov">         40 :     args.infile = calloc(num_pos_args == 0 ? 2 : num_pos_args + 1, sizeof(*args.infile)); </span>
-<span class="lineNum">     106 </span><span class="lineCov">         40 :     if(num_pos_args == 0){</span>
-<span class="lineNum">     107 </span><span class="lineCov">         12 :         char *stdinput = &quot;-&quot;;</span>
-<span class="lineNum">     108 </span><span class="lineCov">         12 :         args.infile[0] = malloc(strlen(stdinput) + 1);</span>
-<span class="lineNum">     109 </span><span class="lineCov">         12 :         memcpy(args.infile[0], stdinput, strlen(stdinput) + 1);</span>
+<span class="lineNum">     105 </span><span class="lineCov">         48 :     args.infile = calloc(num_pos_args == 0 ? 2 : num_pos_args + 1, sizeof(*args.infile)); </span>
+<span class="lineNum">     106 </span><span class="lineCov">         48 :     if(num_pos_args == 0){</span>
+<span class="lineNum">     107 </span><span class="lineCov">         16 :         char *stdinput = &quot;-&quot;;</span>
+<span class="lineNum">     108 </span><span class="lineCov">         16 :         args.infile[0] = malloc(strlen(stdinput) + 1);</span>
+<span class="lineNum">     109 </span><span class="lineCov">         16 :         memcpy(args.infile[0], stdinput, strlen(stdinput) + 1);</span>
 <span class="lineNum">     110 </span>            :     } else {
-<span class="lineNum">     111 </span><span class="lineCov">         58 :         for(int i = 0; i &lt; num_pos_args; ++i) {</span>
+<span class="lineNum">     111 </span><span class="lineCov">         66 :         for(int i = 0; i &lt; num_pos_args; ++i) {</span>
 <span class="lineNum">     112 </span>            :             // Remaining positional args
-<span class="lineNum">     113 </span><span class="lineCov">         30 :             int len = strlen((*argv)[i + optind]) + 1;</span>
-<span class="lineNum">     114 </span><span class="lineCov">         30 :             args.infile[i] = malloc(len);</span>
-<span class="lineNum">     115 </span><span class="lineCov">         30 :             memcpy(args.infile[i], (*argv)[i + optind], len);</span>
+<span class="lineNum">     113 </span><span class="lineCov">         34 :             int len = strlen((*argv)[i + optind]) + 1;</span>
+<span class="lineNum">     114 </span><span class="lineCov">         34 :             args.infile[i] = malloc(len);</span>
+<span class="lineNum">     115 </span><span class="lineCov">         34 :             memcpy(args.infile[i], (*argv)[i + optind], len);</span>
 <span class="lineNum">     116 </span>            :         }
 <span class="lineNum">     117 </span>            :     }
 <span class="lineNum">     118 </span>            :     
-<span class="lineNum">     119 </span><span class="lineCov">         40 :     return args; </span>
+<span class="lineNum">     119 </span><span class="lineCov">         48 :     return args; </span>
 <span class="lineNum">     120 </span>            : }
 <span class="lineNum">     121 </span>            : 
 </pre>
