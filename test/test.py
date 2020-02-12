@@ -7,7 +7,7 @@ import re
 import sys
 import subprocess as sp
 
-class Fqstat(unittest.TestCase):
+class Fxstat(unittest.TestCase):
 
     def setUp(self):
         sys.stderr.write('\n' + self.id().split('.')[-1] + ' ') # Print test name
@@ -247,6 +247,17 @@ class Fqstat(unittest.TestCase):
         self.assertTrue(re.search('n_seq +17\n', stdout.decode()))
         self.assertTrue(re.search('n_bases +375', stdout.decode()))
         self.assertTrue("[../data/quality.fq, ../data/basic.fq]" in stdout.decode())
+        
+        # These two executions are equivalent:        
+        p= sp.Popen("./fxstat -p ../data/long.fq ../data/quality.fq ../data/basic.fq | grep -v -F '['",
+                shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdout, stderr= p.communicate()
+
+        pexp= sp.Popen("cat ../data/basic.fq ../data/quality.fq ../data/long.fq | fxstat | grep -v -F '['",
+                shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdoutExp, stderr2= pexp.communicate()
+        self.assertEqual(stdoutExp, stdout)
+
 
     def testMultipleFilesPulledStopAfter(self):
         p= sp.Popen('valgrind --leak-check=full ./fxstat -s 5 -p ../data/quality.fq ../data/basic.fq',

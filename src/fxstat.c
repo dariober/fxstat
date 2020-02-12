@@ -37,11 +37,8 @@ int scan_file(char *infile, long n_stop, struct results *results){
     }
     gzFile fh = gzdopen(fileno(stream), "r");
     
-    khash_t(int2long) *h_length = kh_init(int2long); // create a hashtable
-
     kseq_t *seq;
     int l;
-    float sum_read_quality = 0;
 
     seq = kseq_init(fh);
     while ((l = kseq_read(seq)) >= 0) {
@@ -55,10 +52,10 @@ int scan_file(char *infile, long n_stop, struct results *results){
         count_nt(seq->seq.s, seq_len, results->nt_counter);
         
         if(seq->qual.l){
-            sum_read_quality += mean_quality(seq->qual.s);
+            results->sum_read_quality += mean_quality(seq->qual.s);
         }
        
-        h_length_update(h_length, seq_len);
+        h_length_update(results->h_length, seq_len);
 
         if(n_stop > 0 && results->n_seq >= n_stop){
             break;
@@ -75,22 +72,6 @@ int scan_file(char *infile, long n_stop, struct results *results){
     fclose(stream);
     gzclose(fh);
 
-    struct int_count *len_counts;
-    len_counts = sort_int_table(h_length); 
-
-    int n_lens = kh_size(h_length);
-    
-    results->median_length = median_length(&len_counts, n_lens);
-
-    int nnx = 0;
-    while(results->nx[nnx].N != -1){
-        results->nx[nnx].length = get_nx(&len_counts, n_lens, results->nx[nnx].N);
-        nnx++;
-    }
-
-    kh_destroy_int2long(h_length);
-    results->mean_read_quality = (float) sum_read_quality / results->n_seq;
-    free(len_counts);
     return err;
 }
 

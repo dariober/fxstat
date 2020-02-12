@@ -20,22 +20,24 @@ struct Nx {
     int length;
 };
 
-/* struct to hold results that will be finally presented to the user
+/* struct to accumulate results as file(s) are read as a stream. 
  * */
 struct results {
     char *filename;
     long n_seq;
     float median_length;
-    float mean_read_quality;
+    float sum_read_quality;
     struct Nx *nx;
     long nt_counter[NCHARS];
+    khash_t(int2long) *h_length; // Hash table with int key for read length and
+                                 // long value for count of reads with that length
 };
 
 struct results init_results(int nx_ints[]){
     struct results results;
     results.filename = calloc(1, 1);
     results.n_seq = 0;
-    results.mean_read_quality = 0.0;
+    results.sum_read_quality = 0.0;
     for(int i = 0; i < NCHARS; i++){
         results.nt_counter[i] = 0;
     }
@@ -50,6 +52,7 @@ struct results init_results(int nx_ints[]){
     }
     results.nx[nnx].N = -1; // Signal end of N cutoffs
     
+    results.h_length = kh_init(int2long);
     return results;
 }
 
@@ -73,55 +76,8 @@ struct results init_results(int nx_ints[]){
 //    return fmt;
 //}
 
-/*Print results and free memory
+/*Final results, print them and free memory
  * */
-void flush_results(FILE *fout, struct results results){
-    long n_bases = 0;
-    for(int i = 0; i < NCHARS; i++){
-        n_bases += results.nt_counter[i];
-    }
-    if(results.filename[strlen(results.filename)-2] != ',' || results.filename[strlen(results.filename)-1] != ' '){
-        fprintf(stderr, "Failed sanity check on filename format\n");
-        exit(1);
-    }
-    results.filename[strlen(results.filename)-2] = 0;
-
-    fprintf(fout, "[%s]\n", results.filename);
-    fprintf(fout, "n_seq              %ld\n", results.n_seq);
-    fprintf(fout, "n_bases            %ld\n", n_bases);
-    fprintf(fout, "mean_length        %.2f\n", (float) n_bases / results.n_seq);
-    fprintf(fout, "median_length      %.2f\n", results.median_length);
-    fprintf(fout, "mean_read_quality  %.2f\n", results.mean_read_quality);
-
-    int nnx = 0;
-    while((results.nx[nnx].N) != -1){
-        char cmt[100];
-        if(results.nx[nnx].N == 0){
-            strncpy(cmt, "  # MAX length", sizeof(cmt));
-        } else if (results.nx[nnx].N == 100){
-            strncpy(cmt, "  # MIN length > 0", sizeof(cmt));
-        } else {
-            strncpy(cmt, "", sizeof(cmt));
-        }
-        fprintf(fout, "N%-5d             %d%s\n", results.nx[nnx].N, results.nx[nnx].length, cmt);
-        nnx++;
-    }
-    fprintf(fout, "A                  %.2f%%\n", 
-            (float) 100 * (results.nt_counter['A'] + results.nt_counter['a']) / n_bases);
-    fprintf(fout, "T                  %.2f%%\n", 
-            (float) 100 * (results.nt_counter['T'] + results.nt_counter['t']) / n_bases);
-    fprintf(fout, "C                  %.2f%%\n", 
-            (float) 100 * (results.nt_counter['C'] + results.nt_counter['c']) / n_bases);
-    fprintf(fout, "G                  %.2f%%\n", 
-            (float) 100 * (results.nt_counter['G'] + results.nt_counter['g']) / n_bases);
-    fprintf(fout, "N                  %.2f%%\n", 
-            (float) 100 * (results.nt_counter['N'] + results.nt_counter['n']) / n_bases);
-    fprintf(fout, "GC                 %.2f%%\n", 
-            (float) 100 * (results.nt_counter['G'] + results.nt_counter['g'] + results.nt_counter['C'] + results.nt_counter['c']) / n_bases);
-    
-    free(results.nx);        
-    free(results.filename);
-}
 
 struct int_count {
     int id;
@@ -422,4 +378,65 @@ struct int_count * sort_int_table(void *_hash){
     return len_counts;
 }
 
+void flush_results(FILE *fout, struct results results){
+
+    struct int_count *len_counts;
+    len_counts = sort_int_table(results.h_length); 
+
+    int n_lens = kh_size(results.h_length);
+    
+    int nnx = 0;
+    while(results.nx[nnx].N != -1){
+        results.nx[nnx].length = get_nx(&len_counts, n_lens, results.nx[nnx].N);
+        nnx++;
+    }
+
+    long n_bases = 0;
+    for(int i = 0; i < NCHARS; i++){
+        n_bases += results.nt_counter[i];
+    }
+    if(results.filename[strlen(results.filename)-2] != ',' || results.filename[strlen(results.filename)-1] != ' '){
+        fprintf(stderr, "Failed sanity check on filename format\n");
+        exit(1);
+    }
+    results.filename[strlen(results.filename)-2] = 0;
+
+    fprintf(fout, "[%s]\n", results.filename);
+    fprintf(fout, "n_seq              %ld\n", results.n_seq);
+    fprintf(fout, "n_bases            %ld\n", n_bases);
+    fprintf(fout, "mean_length        %.2f\n", (float) n_bases / results.n_seq);
+    fprintf(fout, "median_length      %.2f\n", median_length(&len_counts, n_lens));
+    fprintf(fout, "mean_read_quality  %.2f\n", results.sum_read_quality / results.n_seq);
+
+    nnx = 0;
+    while((results.nx[nnx].N) != -1){
+        char cmt[100];
+        if(results.nx[nnx].N == 0){
+            strncpy(cmt, "  # MAX length", sizeof(cmt));
+        } else if (results.nx[nnx].N == 100){
+            strncpy(cmt, "  # MIN length > 0", sizeof(cmt));
+        } else {
+            strncpy(cmt, "", sizeof(cmt));
+        }
+        fprintf(fout, "N%-5d             %d%s\n", results.nx[nnx].N, results.nx[nnx].length, cmt);
+        nnx++;
+    }
+    fprintf(fout, "A                  %.2f%%\n", 
+            (float) 100 * (results.nt_counter['A'] + results.nt_counter['a']) / n_bases);
+    fprintf(fout, "T                  %.2f%%\n", 
+            (float) 100 * (results.nt_counter['T'] + results.nt_counter['t']) / n_bases);
+    fprintf(fout, "C                  %.2f%%\n", 
+            (float) 100 * (results.nt_counter['C'] + results.nt_counter['c']) / n_bases);
+    fprintf(fout, "G                  %.2f%%\n", 
+            (float) 100 * (results.nt_counter['G'] + results.nt_counter['g']) / n_bases);
+    fprintf(fout, "N                  %.2f%%\n", 
+            (float) 100 * (results.nt_counter['N'] + results.nt_counter['n']) / n_bases);
+    fprintf(fout, "GC                 %.2f%%\n", 
+            (float) 100 * (results.nt_counter['G'] + results.nt_counter['g'] + results.nt_counter['C'] + results.nt_counter['c']) / n_bases);
+    
+    free(len_counts);
+    free(results.nx);        
+    free(results.filename);
+    kh_destroy_int2long(results.h_length);
+}
 #endif
