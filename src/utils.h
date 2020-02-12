@@ -9,6 +9,8 @@
 #ifndef UTILS
 #define UTILS
 
+#define NCHARS 256
+
 KHASH_MAP_INIT_INT(int2long, long)  // instantiate structs and methods
                                      // with int key and long value
 
@@ -23,19 +25,18 @@ struct Nx {
 struct results {
     char *filename;
     long n_seq;
-    long n_bases; 
     float median_length;
     float mean_read_quality;
     struct Nx *nx;
-    long nt_counter[256];
+    long nt_counter[NCHARS];
 };
 
 struct results init_results(int nx_ints[]){
     struct results results;
+    results.filename = calloc(1, 1);
     results.n_seq = 0;
-    results.n_bases = 0;
     results.mean_read_quality = 0.0;
-    for(int i = 0; i < 256; i++){
+    for(int i = 0; i < NCHARS; i++){
         results.nt_counter[i] = 0;
     }
 
@@ -52,11 +53,43 @@ struct results init_results(int nx_ints[]){
     return results;
 }
 
-void print_results(FILE *fout, struct results results){
+//char *format_nt_counter format_nt_counter(char *nt_counter, char base){
+//    long n_bases = 0;
+//    for(int i = 0; i < NCHARS; i++){
+//        n_bases += nt_counter[i];
+//    }
+//    char fmt[61] = {0};
+//   //  char[0] = base;
+//   //  int spacer = 5;
+//   //  for(int i = 0; i < spacer; i++){
+//   //      fmt[i+1] = ' ';
+//   //  }
+//   //  char[] pct = sprintf("%.2f%%", (float)(nt_counter[toupper(base)] + nt_counter[tolower(base)])/ n_bases);
+//   //  int lpct = strlen(pct);
+//   //  for(int i = 0; i < lpct; i++){
+//   //     fmt[1+spacer+i] = pct[i]; 
+//   //  }
+//   //  fmt[60] = '\n';
+//    return fmt;
+//}
+
+/*Print results and free memory
+ * */
+void flush_results(FILE *fout, struct results results){
+    long n_bases = 0;
+    for(int i = 0; i < NCHARS; i++){
+        n_bases += results.nt_counter[i];
+    }
+    if(results.filename[strlen(results.filename)-2] != ',' || results.filename[strlen(results.filename)-1] != ' '){
+        fprintf(stderr, "Failed sanity check on filename format\n");
+        exit(1);
+    }
+    results.filename[strlen(results.filename)-2] = 0;
+
     fprintf(fout, "[%s]\n", results.filename);
     fprintf(fout, "n_seq              %ld\n", results.n_seq);
-    fprintf(fout, "n_bases            %ld\n", results.n_bases);
-    fprintf(fout, "mean_length        %.2f\n", (float) results.n_bases / results.n_seq);
+    fprintf(fout, "n_bases            %ld\n", n_bases);
+    fprintf(fout, "mean_length        %.2f\n", (float) n_bases / results.n_seq);
     fprintf(fout, "median_length      %.2f\n", results.median_length);
     fprintf(fout, "mean_read_quality  %.2f\n", results.mean_read_quality);
 
@@ -74,17 +107,20 @@ void print_results(FILE *fout, struct results results){
         nnx++;
     }
     fprintf(fout, "A                  %.2f%%\n", 
-            (float) 100 * (results.nt_counter['A'] + results.nt_counter['a']) / results.n_bases);
+            (float) 100 * (results.nt_counter['A'] + results.nt_counter['a']) / n_bases);
     fprintf(fout, "T                  %.2f%%\n", 
-            (float) 100 * (results.nt_counter['T'] + results.nt_counter['t']) / results.n_bases);
+            (float) 100 * (results.nt_counter['T'] + results.nt_counter['t']) / n_bases);
     fprintf(fout, "C                  %.2f%%\n", 
-            (float) 100 * (results.nt_counter['C'] + results.nt_counter['c']) / results.n_bases);
+            (float) 100 * (results.nt_counter['C'] + results.nt_counter['c']) / n_bases);
     fprintf(fout, "G                  %.2f%%\n", 
-            (float) 100 * (results.nt_counter['G'] + results.nt_counter['g']) / results.n_bases);
+            (float) 100 * (results.nt_counter['G'] + results.nt_counter['g']) / n_bases);
     fprintf(fout, "N                  %.2f%%\n", 
-            (float) 100 * (results.nt_counter['N'] + results.nt_counter['n']) / results.n_bases);
+            (float) 100 * (results.nt_counter['N'] + results.nt_counter['n']) / n_bases);
     fprintf(fout, "GC                 %.2f%%\n", 
-            (float) 100 * (results.nt_counter['G'] + results.nt_counter['g'] + results.nt_counter['C'] + results.nt_counter['c']) / results.n_bases);
+            (float) 100 * (results.nt_counter['G'] + results.nt_counter['g'] + results.nt_counter['C'] + results.nt_counter['c']) / n_bases);
+    
+    free(results.nx);        
+    free(results.filename);
 }
 
 struct int_count {

@@ -236,6 +236,39 @@ class Fqstat(unittest.TestCase):
         self.assertTrue(re.search('n_bases +181', stdout.decode()))
         self.assertTrue(re.search('n_bases +255', stdout.decode()))
 
+    def testMultipleFilesPulled(self):
+        p= sp.Popen('valgrind --leak-check=full ./fxstat -p ../data/quality.fq ../data/basic.fq',
+                shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdout, stderr= p.communicate()
+        self.assertEqual(0, p.returncode)
+        self.assertTrue('All heap blocks were freed' in stderr.decode())
+        self.assertTrue('ERROR SUMMARY: 0 errors' in stderr.decode())
+
+        self.assertTrue(re.search('n_seq +17\n', stdout.decode()))
+        self.assertTrue(re.search('n_bases +375', stdout.decode()))
+        self.assertTrue("[../data/quality.fq, ../data/basic.fq]" in stdout.decode())
+
+    def testMultipleFilesPulledStopAfter(self):
+        p= sp.Popen('valgrind --leak-check=full ./fxstat -s 5 -p ../data/quality.fq ../data/basic.fq',
+                shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdout, stderr= p.communicate()
+        self.assertEqual(0, p.returncode)
+        self.assertTrue('All heap blocks were freed' in stderr.decode())
+        self.assertTrue('ERROR SUMMARY: 0 errors' in stderr.decode())
+
+        self.assertTrue(re.search('n_seq +5\n', stdout.decode()))
+        self.assertTrue("[../data/quality.fq]" in stdout.decode()) # We don't read the 2nd file at all
+
+        p= sp.Popen('valgrind --leak-check=full ./fxstat -s 10 -p ../data/quality.fq ../data/basic.fq',
+                shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdout, stderr= p.communicate()
+        self.assertEqual(0, p.returncode)
+        self.assertTrue('All heap blocks were freed' in stderr.decode())
+        self.assertTrue('ERROR SUMMARY: 0 errors' in stderr.decode())
+
+        self.assertTrue(re.search('n_seq +10\n', stdout.decode()))
+        self.assertTrue("[../data/quality.fq, ../data/basic.fq]" in stdout.decode())
+
     def testUnrecognizedInputError(self):
         pass
 

@@ -11,8 +11,19 @@
 KSEQ_INIT(gzFile, gzread)
 
 int scan_file(char *infile, long n_stop, struct results *results){
+
+    int err = 0;
+    if(n_stop > 0 && results->n_seq >= n_stop){
+        return err;
+    }
     
-    results->filename = strdup(infile); // malloc(strlen(infile) + 1);
+    results->filename = realloc(results->filename, strlen(results->filename) + strlen(infile) + 3);
+    if( ! results->filename){
+        fprintf(stderr, "Cannot allocate memory for filename string\n");
+        exit(1);
+    }
+    strcat(results->filename, infile);
+    strcat(results->filename, ", ");
 
     FILE *stream = NULL;
     if(strcmp(infile, "-") == 0){
@@ -34,6 +45,7 @@ int scan_file(char *infile, long n_stop, struct results *results){
 
     seq = kseq_init(fh);
     while ((l = kseq_read(seq)) >= 0) {
+        
         results->n_seq += 1;
         int seq_len = strlen(seq->seq.s);
         if(results->n_seq % 1000000 == 0){
@@ -45,8 +57,6 @@ int scan_file(char *infile, long n_stop, struct results *results){
         if(seq->qual.l){
             sum_read_quality += mean_quality(seq->qual.s);
         }
-
-        results->n_bases += seq_len;
        
         h_length_update(h_length, seq_len);
 
@@ -57,7 +67,6 @@ int scan_file(char *infile, long n_stop, struct results *results){
     
     kseq_destroy(seq);
    
-    int err;
     const char *err_msg = gzerror(fh, &err);
     if(strlen(err_msg) > 0){
         fprintf(stderr, "\rError: %s\n", err_msg);
@@ -68,7 +77,6 @@ int scan_file(char *infile, long n_stop, struct results *results){
 
     struct int_count *len_counts;
     len_counts = sort_int_table(h_length); 
-
 
     int n_lens = kh_size(h_length);
     
@@ -105,8 +113,11 @@ int main(int argc, char *argv[])
 
     int nfiles = 0;
     int err;
+    struct results results;
     while(args.infile[nfiles] != NULL){
-        struct results results = init_results(args.nx_ints);
+        if(nfiles == 0 || args.pull_files == 0){
+            results = init_results(args.nx_ints);
+        }
         err = scan_file(args.infile[nfiles], args.n_stop, &results);
         if(err != 0){
             return err;
@@ -114,10 +125,14 @@ int main(int argc, char *argv[])
         if(results.n_seq > 1000000){
             fprintf(stderr, "\n");
         }
-        print_results(fout, results);
-        free(results.nx);        
-        free(results.filename);
+        if(args.pull_files == 0){
+            flush_results(fout, results);
+        }
         nfiles++;
+    }
+    
+    if(args.pull_files == 1){
+        flush_results(fout, results);
     }
     fclose(fout);
 
@@ -130,65 +145,3 @@ int main(int argc, char *argv[])
     fprintf(stderr, "# Proc time %s\n", format_seconds(t1-t0));
     return err;
 }
-    /*
-    char xseq[] = "ABCAACACACACABABABAACACBABABABABBABABA";
-    
-    int kmer_size = 1;
-    int ret; 
-    khiter_t k;
-    khash_t(khStrLong) *h = kh_init(khStrLong); // create a hashtable
-
-    for(int i = 0; i < 10000000; i++){
-        int len = strlen(xseq);
-        for(int j = 0; j < len - kmer_size + 1; j++){
-            char kmer[kmer_size+1];  
-            memcpy(kmer, xseq+j, kmer_size);
-            kmer[kmer_size] = '\0';
-            k = kh_get(khStrLong, h, kmer);
-            if(k == kh_end(h)){
-                k = kh_put(khStrLong, h, strdup(kmer), &ret);
-                kh_value(h, k) = 0;
-            }
-            kh_value(h, k) += 1;
-        }
-    }
-    for (k = kh_begin(h); k != kh_end(h); ++k) {
-        if (kh_exist(h, k)) {
-            const char *key = kh_key(h,k);
-            long tval = kh_value(h, k);
-            printf("key=%s  val=%ld\n", key, tval);
-            // free((char*)kh_key(h, k));
-        }
-    }
-    kh_destroy(khStrLong, h);
-    return 0;
-    */    
-    /*
-    k = kh_put(khStrLong, h, 1, &ret); // add the key
-
-    for(int i = 0; i < 10; i++){
-        int key = 1;
-        k = kh_get(int2long, h, key); 
-        //if (k == kh_end(h)){
-        //    // If a key is absent node == end of table
-        //    k = kh_put(int2long, h, key, &ret); // add the key
-        //    kh_value(h, k) = 1; // set the value of the key
-        //} else {
-            // If key found, increment value
-            kh_value(h, k) += 1;
-        //}
-    }
-    printf("Buckets %d\n", kh_size(h));
-
-    for (k = kh_begin(h); k != kh_end(h); ++k) {
-        if (kh_exist(h, k)) {
-            const int key = kh_key(h,k);
-            long tval = kh_value(h, k);
-            printf("key=%d  val=%ld\n", key, tval);
-        }
-    }
-
-    kh_destroy(int2long, h);              // deallocate the hash table
-    return 0;
-    */
-

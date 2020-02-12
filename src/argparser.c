@@ -8,6 +8,7 @@ struct args {
     char **infile;
     char *outfile;
     long n_stop;
+    int pull_files;
 };
 
 void tokenize_nx(char *str, int ints[]){
@@ -46,7 +47,8 @@ struct args argparser(int argc, char **argv[]){
     struct args args ={
         .version = "0.1.0", 
         .outfile = "-", 
-        .n_stop = -1
+        .n_stop = -1,
+        .pull_files = 0
     };
 
     char nx_ints[1000] = nxstr;
@@ -55,7 +57,7 @@ struct args argparser(int argc, char **argv[]){
     int opt;
     opterr = 0;
 
-    while ((opt = getopt (argc, *argv, "s:N:hVo:")) != -1)
+    while ((opt = getopt (argc, *argv, "s:N:hVo:p")) != -1)
         switch (opt)
         {
             case 's':
@@ -68,6 +70,9 @@ struct args argparser(int argc, char **argv[]){
             case 'o':
                 args.outfile = optarg;
                 break;
+            case 'p':
+                args.pull_files = 1;
+                break;
             case 'V':
                 printf("%s\n", args.version);
                 exit(0);
@@ -75,7 +80,8 @@ struct args argparser(int argc, char **argv[]){
                 printf("Usage: fxstat [OPTION]... [FILE]...\n");
                 printf("Collect sequence statistics from fastq/fasta file\n");
                 printf("\n");
-                printf("  -s  Stop after this many sequences from each FILE [%ld]\n", args.n_stop);
+                printf("  -p  Pull all FILEs in a single summary\n");
+                printf("  -s  Stop after this many sequences [%ld]\n", args.n_stop);
                 printf("  -N  Comma-separated thresholds for Nx statistics [%s]\n", nxstr);
                 printf("  -o  output file [%s]\n", args.outfile);
                 printf("  -V  print version\n");

@@ -31,13 +31,23 @@ depends only on gcc for compilation and standard C libraries.
 Usage & Output
 ==============
 
-Usage should be straightforward. Assuming `fxstat` is on your `PATH` (if not, use `path/to/fxstat`):
+Usage should be straightforward. Assuming `fxstat` is on your `PATH` (if not,
+use `path/to/fxstat`):
 
 ```
 fxstat -h
 fxstat reads.fastq.gz
 cat reads.fastq | fxstat
 ```
+
+Stat all `*.fastq` files in directory `fastq_pass` and in its subdirectories,
+pull all statistics in a single summary (default is one summary per file):
+
+```
+fxstat -p `find fastq_pass -name '*.fastq'`
+```
+
+----
 
 The output should be self explanatory:
 
