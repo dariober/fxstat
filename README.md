@@ -8,6 +8,7 @@
 * [Usage & Output](#usage--output)
 * [Performance](#performance)
 * [Unit tests and code coverage](#unit-tests-and-code-coverage)
+* [Known issues](#known-issues)
 
 <!-- vim-markdown-toc -->
 
@@ -26,7 +27,7 @@ gcc -O3 -Wall -g src/fxstat.c -lz -o fxstat
 Then move the `fxstat` executable to a directory of your choice like `$HOME/bin/`.
 
 If you are on a Unix system, all the requirements should be satisfied as fxstat
-depends only on gcc for compilation and standard C libraries.
+depends only on gcc for compilation and on standard C libraries.
 
 Usage & Output
 ==============
@@ -36,7 +37,8 @@ use `path/to/fxstat`):
 
 ```
 fxstat -h
-fxstat reads.fastq.gz
+fxstat r1.fastq.gz r2.fastq.gz
+fxstat sequence_dir/
 cat reads.fastq | fxstat
 ```
 
@@ -44,7 +46,13 @@ Stat all `*.fastq` files in directory `fastq_pass` and in its subdirectories,
 pull all statistics in a single summary (default is one summary per file):
 
 ```
-fxstat -p `find fastq_pass -name '*.fastq'`
+fxstat -p fastq_pass
+```
+
+For more control over files to include, consider using the `find` command. *E.g.*,
+
+```
+fxstat -p `find fastq_pass -name '*.fastq'
 ```
 
 ----
@@ -69,6 +77,7 @@ C                  25.05%
 G                  25.32%
 N                  0.00%
 GC                 50.37%
+n_files: 1
 # Proc time 00:00:07
 ```
 
@@ -127,3 +136,8 @@ Requirements for running the test suite:
 * [lcov](https://github.com/linux-test-project/lcov) for code coverage report.
   As above, install with a package manager or
   [conda](https://anaconda.org/conda-forge/lcov)
+
+Known issues
+============
+
+* There is no check the input files are correctly formatted

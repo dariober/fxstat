@@ -1,3 +1,4 @@
+#define _XOPEN_SOURCE 500
 #include <stdio.h>
 #include <ctype.h> 
 #include <stdlib.h>
@@ -5,6 +6,7 @@
 #include <zlib.h>
 #include <stdint.h>
 #include "khash.h"
+#include <ftw.h>
 
 #ifndef UTILS
 #define UTILS
@@ -12,7 +14,7 @@
 #define NCHARS 256
 
 KHASH_MAP_INIT_INT(int2long, long)  // instantiate structs and methods
-                                     // with int key and long value
+                                    // with int key and long value
 
 /*struct to hold Nx statistics */
 struct Nx {
@@ -395,14 +397,14 @@ void flush_results(FILE *fout, struct results results){
     for(int i = 0; i < NCHARS; i++){
         n_bases += results.nt_counter[i];
     }
-    if(results.filename[strlen(results.filename)-2] != ',' || results.filename[strlen(results.filename)-1] != ' '){
+    if(results.filename[strlen(results.filename)-1] != '\n'){
         fprintf(stderr, "Failed sanity check on filename format\n");
         exit(1);
     }
-    results.filename[strlen(results.filename)-2] = 0;
+    results.filename[strlen(results.filename)-1] = 0;
 
-    fprintf(fout, "[%s]\n", results.filename);
-    fprintf(fout, "n_seq              %ld\n", results.n_seq);
+    fprintf(fout, "%s\n", results.filename);
+    fprintf(fout, "n_sequences        %ld\n", results.n_seq);
     fprintf(fout, "n_bases            %ld\n", n_bases);
     fprintf(fout, "mean_length        %.2f\n", (float) n_bases / results.n_seq);
     fprintf(fout, "median_length      %.2f\n", median_length(&len_counts, n_lens));

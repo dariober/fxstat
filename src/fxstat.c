@@ -1,8 +1,10 @@
+#define _XOPEN_SOURCE 500
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
 #include <zlib.h>
+#include <ftw.h>
 #include "utils.h"
 #include "kseq.h"
 #include "khash.h"
@@ -17,13 +19,14 @@ int scan_file(char *infile, long n_stop, struct results *results){
         return err;
     }
     
-    results->filename = realloc(results->filename, strlen(results->filename) + strlen(infile) + 3);
+    results->filename = realloc(results->filename, strlen(results->filename) + strlen(infile) + 4);
     if( ! results->filename){
         fprintf(stderr, "Cannot allocate memory for filename string\n");
         exit(1);
     }
+    strcat(results->filename, "[");
     strcat(results->filename, infile);
-    strcat(results->filename, ", ");
+    strcat(results->filename, "]\n");
 
     FILE *stream = NULL;
     if(strcmp(infile, "-") == 0){
@@ -42,7 +45,6 @@ int scan_file(char *infile, long n_stop, struct results *results){
 
     seq = kseq_init(fh);
     while ((l = kseq_read(seq)) >= 0) {
-        
         results->n_seq += 1;
         int seq_len = strlen(seq->seq.s);
         if(results->n_seq % 1000000 == 0){
@@ -77,6 +79,7 @@ int scan_file(char *infile, long n_stop, struct results *results){
 
 int main(int argc, char *argv[])
 {
+
     time_t t0 = time(NULL);
 
     struct args args = argparser(argc, &argv);
@@ -95,11 +98,13 @@ int main(int argc, char *argv[])
     int nfiles = 0;
     int err;
     struct results results;
-    while(args.infile[nfiles] != NULL){
+    while(args.infile[nfiles]){
+
         if(nfiles == 0 || args.pull_files == 0){
             results = init_results(args.nx_ints);
         }
         err = scan_file(args.infile[nfiles], args.n_stop, &results);
+        free(args.infile[nfiles]);
         if(err != 0){
             return err;
         }
@@ -111,16 +116,12 @@ int main(int argc, char *argv[])
         }
         nfiles++;
     }
-    
+    free(args.infile);
     if(args.pull_files == 1){
         flush_results(fout, results);
     }
+    fprintf(fout, "n_files: %d\n", nfiles);
     fclose(fout);
-
-    for(int i = 0; i <= nfiles; i++){
-        free(args.infile[i]);
-    }
-    free(args.infile);
 
     time_t t1= time(NULL);
     fprintf(stderr, "# Proc time %s\n", format_seconds(t1-t0));

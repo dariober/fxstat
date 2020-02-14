@@ -12,6 +12,11 @@ class Fxstat(unittest.TestCase):
     def setUp(self):
         sys.stderr.write('\n' + self.id().split('.')[-1] + ' ') # Print test name
 
+    def valgrind(self, stderr):
+        self.assertTrue('All heap blocks were freed' in stderr)
+        self.assertTrue('ERROR SUMMARY: 0 errors' in stderr)
+        
+
     def testHelp(self):
         p= sp.Popen('./fxstat -h',
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
@@ -31,7 +36,7 @@ class Fxstat(unittest.TestCase):
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
         stdout, stderr= p.communicate()
         self.assertEqual(0, p.returncode)
-        self.assertTrue(re.search('n_seq +9\n', stdout.decode()))
+        self.assertTrue(re.search('n_sequences +9\n', stdout.decode()))
         self.assertTrue(re.search('mean_length +28.33\n', stdout.decode()))
         self.assertTrue(re.search('n_bases +255\n', stdout.decode()))
 
@@ -66,7 +71,7 @@ class Fxstat(unittest.TestCase):
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
         stdout, stderr= p.communicate()
         self.assertEqual(0, p.returncode)
-        self.assertTrue(re.search('n_seq +7\n', stdout.decode()))
+        self.assertTrue(re.search('n_sequences +7\n', stdout.decode()))
         self.assertTrue(re.search('n_bases +181\n', stdout.decode()))
 
     def testStopAfter(self):
@@ -74,7 +79,7 @@ class Fxstat(unittest.TestCase):
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
         stdout, stderr= p.communicate()
         self.assertEqual(0, p.returncode)
-        self.assertTrue(re.search('n_seq +5\n', stdout.decode()))
+        self.assertTrue(re.search('n_sequences +5\n', stdout.decode()))
 
     def testBaseQualityStats(self):
         p= sp.Popen('head -n 4 ../data/quality.fq | ./fxstat',
@@ -140,6 +145,20 @@ class Fxstat(unittest.TestCase):
         stdout, stderr= p.communicate()
         self.assertEqual(0, p.returncode)
 
+    def testReadStdin(self):
+        p= sp.Popen('cat ../data/basic.fq | ./fxstat', shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdout, stderr= p.communicate()
+        self.assertEqual(0, p.returncode)
+        
+        p= sp.Popen('cat ../data/basic.fq | ./fxstat -', shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdout, stderr= p.communicate()
+        self.assertEqual(0, p.returncode)
+
+        p= sp.Popen('./fxstat <(cat ../data/basic.fq) <(gzip -c ../data/basic.fq)', shell=True, stdout= sp.PIPE, stderr= sp.PIPE, executable='/bin/bash')
+        stdout, stderr= p.communicate()
+        self.assertEqual(0, p.returncode)
+        self.assertTrue('n_files: 2', stdout.decode())
+
     def testGzipStdin(self):
         p= sp.Popen('gzip -c ../data/long.fq | ./fxstat',
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
@@ -177,37 +196,32 @@ class Fxstat(unittest.TestCase):
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
         stdout, stderr= p.communicate()
         self.assertEqual(0, p.returncode)
-        self.assertTrue('All heap blocks were freed' in stderr.decode())
-        self.assertTrue('ERROR SUMMARY: 0 errors' in stderr.decode())
+        self.valgrind(stderr.decode())
 
         p= sp.Popen('head -n 4 ../data/basic.fq | valgrind ./fxstat',
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
         stdout, stderr= p.communicate()
         self.assertEqual(0, p.returncode)
-        self.assertTrue('All heap blocks were freed' in stderr.decode())
-        self.assertTrue('ERROR SUMMARY: 0 errors' in stderr.decode())
+        self.valgrind(stderr.decode())
 
         p= sp.Popen('cat ../data/long.fq ../data/long.fq ../data/long.fq | valgrind ./fxstat',
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
         stdout, stderr= p.communicate()
         self.assertEqual(0, p.returncode)
-        self.assertTrue('All heap blocks were freed' in stderr.decode())
-        self.assertTrue('ERROR SUMMARY: 0 errors' in stderr.decode())
+        self.valgrind(stderr.decode())
 
     def testMemoryLeakFastA(self):
         p= sp.Popen('valgrind --leak-check=full ./fxstat ../data/basic.fa',
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
         stdout, stderr= p.communicate()
         self.assertEqual(0, p.returncode)
-        self.assertTrue('All heap blocks were freed' in stderr.decode())
-        self.assertTrue('ERROR SUMMARY: 0 errors' in stderr.decode())
+        self.valgrind(stderr.decode())
 
         p= sp.Popen('head -n 4 ../data/basic.fq | valgrind ./fxstat',
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
         stdout, stderr= p.communicate()
         self.assertEqual(0, p.returncode)
-        self.assertTrue('All heap blocks were freed' in stderr.decode())
-        self.assertTrue('ERROR SUMMARY: 0 errors' in stderr.decode())
+        self.valgrind(stderr.decode())
 
     def testCompileWithoutWarnings(self):
         p= sp.Popen('gcc -O3 -Wall ../../src/fxstat.c -lz -o test_fxstat',
@@ -220,19 +234,20 @@ class Fxstat(unittest.TestCase):
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
         stdout, stderr= p.communicate()
         self.assertEqual(0, p.returncode)
-        self.assertTrue(re.search('n_seq +3\n', stdout.decode()))
+        self.assertTrue(re.search('n_sequences +3\n', stdout.decode()))
         self.assertTrue(re.search('mean_length +10.00\n', stdout.decode()))
         # NB: N100 reports the shortest read with length >0
         self.assertTrue(re.search('N100 +10', stdout.decode()))
         self.assertTrue(re.search('N0 +20', stdout.decode()))
 
     def testMultipleFiles(self):
-        p= sp.Popen('./fxstat ../data/basic.fq ../data/basic.fa',
+        p= sp.Popen('./fxstat ../data/basic.fq ../data/basic.fa ../data/basic.fq',
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
         stdout, stderr= p.communicate()
         self.assertEqual(0, p.returncode)
         self.assertTrue("[../data/basic.fq]" in stdout.decode())
         self.assertTrue("[../data/basic.fa]" in stdout.decode())
+        self.assertEqual(1, stdout.decode().count('basic.fq')) # Dup file removed
         self.assertTrue(re.search('n_bases +181', stdout.decode()))
         self.assertTrue(re.search('n_bases +255', stdout.decode()))
 
@@ -241,22 +256,21 @@ class Fxstat(unittest.TestCase):
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
         stdout, stderr= p.communicate()
         self.assertEqual(0, p.returncode)
-        self.assertTrue('All heap blocks were freed' in stderr.decode())
-        self.assertTrue('ERROR SUMMARY: 0 errors' in stderr.decode())
+        self.valgrind(stderr.decode())
 
-        self.assertTrue(re.search('n_seq +17\n', stdout.decode()))
+        self.assertTrue(re.search('n_sequences +17\n', stdout.decode()))
         self.assertTrue(re.search('n_bases +375', stdout.decode()))
-        self.assertTrue("[../data/quality.fq, ../data/basic.fq]" in stdout.decode())
+        self.assertTrue("[../data/basic.fq]\n[../data/quality.fq]" in stdout.decode())
         
         # These two executions are equivalent:        
-        p= sp.Popen("./fxstat -p ../data/long.fq ../data/quality.fq ../data/basic.fq | grep -v -F '['",
+        p= sp.Popen("./fxstat -p ../data/long.fq ../data/quality.fq ../data/basic.fq | grep -v -F '[' | grep -v n_files",
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
         stdout, stderr= p.communicate()
 
-        pexp= sp.Popen("cat ../data/basic.fq ../data/quality.fq ../data/long.fq | fxstat | grep -v -F '['",
+        pexp= sp.Popen("cat ../data/basic.fq ../data/quality.fq ../data/long.fq | ./fxstat | grep -v -F '[' | grep -v n_files",
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
         stdoutExp, stderr2= pexp.communicate()
-        self.assertEqual(stdoutExp, stdout)
+        self.assertEqual(stdoutExp.decode(), stdout.decode())
 
 
     def testMultipleFilesPulledStopAfter(self):
@@ -264,21 +278,36 @@ class Fxstat(unittest.TestCase):
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
         stdout, stderr= p.communicate()
         self.assertEqual(0, p.returncode)
-        self.assertTrue('All heap blocks were freed' in stderr.decode())
-        self.assertTrue('ERROR SUMMARY: 0 errors' in stderr.decode())
+        self.valgrind(stderr.decode())
 
-        self.assertTrue(re.search('n_seq +5\n', stdout.decode()))
-        self.assertTrue("[../data/quality.fq]" in stdout.decode()) # We don't read the 2nd file at all
+        self.assertTrue(re.search('n_sequences +5\n', stdout.decode()))
+        self.assertTrue("[../data/basic.fq]" in stdout.decode()) # We don't read the 2nd file at all
 
         p= sp.Popen('valgrind --leak-check=full ./fxstat -s 10 -p ../data/quality.fq ../data/basic.fq',
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
         stdout, stderr= p.communicate()
         self.assertEqual(0, p.returncode)
-        self.assertTrue('All heap blocks were freed' in stderr.decode())
-        self.assertTrue('ERROR SUMMARY: 0 errors' in stderr.decode())
+        self.valgrind(stderr.decode())
 
-        self.assertTrue(re.search('n_seq +10\n', stdout.decode()))
-        self.assertTrue("[../data/quality.fq, ../data/basic.fq]" in stdout.decode())
+        self.assertTrue(re.search('n_sequences +10\n', stdout.decode()))
+        self.assertTrue("[../data/basic.fq]\n[../data/quality.fq]" in stdout.decode())
+
+    def testInputDir(self):
+        p= sp.Popen('valgrind --leak-check=full ./fxstat ../data ../data',
+                shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdout, stderr= p.communicate()
+        self.assertEqual(0, p.returncode)
+        self.valgrind(stderr.decode())
+        self.assertEqual(7, stdout.decode().count('['));
+        self.assertTrue('n_files: 7' in stdout.decode());
+        self.assertTrue('.txt' not in stdout.decode());
+
+    def testFileNotfound(self):
+        p= sp.Popen('./fxstat foo.fq',
+                shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdout, stderr= p.communicate()
+        self.assertEqual(1, p.returncode)
+        self.assertTrue("Invalid input file" in stderr.decode());
 
     def testUnrecognizedInputError(self):
         pass
