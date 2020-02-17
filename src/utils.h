@@ -33,6 +33,7 @@ struct results {
     long nt_counter[NCHARS];
     khash_t(int2long) *h_length; // Hash table with int key for read length and
                                  // long value for count of reads with that length
+    khash_t(int2long) *h_ont_channel; // key:ont_channel value: read count
 };
 
 struct results init_results(int nx_ints[]){
@@ -55,31 +56,9 @@ struct results init_results(int nx_ints[]){
     results.nx[nnx].N = -1; // Signal end of N cutoffs
     
     results.h_length = kh_init(int2long);
+    results.h_ont_channel = kh_init(int2long);
     return results;
 }
-
-//char *format_nt_counter format_nt_counter(char *nt_counter, char base){
-//    long n_bases = 0;
-//    for(int i = 0; i < NCHARS; i++){
-//        n_bases += nt_counter[i];
-//    }
-//    char fmt[61] = {0};
-//   //  char[0] = base;
-//   //  int spacer = 5;
-//   //  for(int i = 0; i < spacer; i++){
-//   //      fmt[i+1] = ' ';
-//   //  }
-//   //  char[] pct = sprintf("%.2f%%", (float)(nt_counter[toupper(base)] + nt_counter[tolower(base)])/ n_bases);
-//   //  int lpct = strlen(pct);
-//   //  for(int i = 0; i < lpct; i++){
-//   //     fmt[1+spacer+i] = pct[i]; 
-//   //  }
-//   //  fmt[60] = '\n';
-//    return fmt;
-//}
-
-/*Final results, print them and free memory
- * */
 
 struct int_count {
     int id;
@@ -217,6 +196,38 @@ static const float PHRED_PROB[] = {
     2.511886431509582e-13,
     1.9952623149688827e-13};
 
+/* Get the ONT channel number from the comment section of the read name (the
+ * comment is everything after the first blank space).  Return 0 if the channel
+ * is not found. */
+int ont_channel(char *comment){
+    if(comment == NULL){
+        return 0;
+    }
+    char *ch = strstr(comment, " ch=");
+    if(ch){
+        long len = strlen(ch);
+        char channel[10]= {0}; // [n] number of digits we allow the channel to be long
+        for(int i = 4; i < len; i++){
+            char c = *(ch + i);
+            if(i == 4 && ! isdigit(c)){
+                // First char after ' ch=' must be a digit to be ONT read
+                return 0;
+            }
+            // If you are here, at least one digit after ' ch=' has been read
+            if(c == ' '){
+                break; // End of digits reached
+            }
+            if(!isdigit(c)){
+                return 0;
+            }
+            channel[i-4] = c;
+        }
+        return atoi(channel);
+    } else {
+        return 0;
+    }
+}
+
 /* Get the Nx value (e.g. the N50) of the sequence length table len_counts We
  * assume the number of entries in len_counts is not huge so passing through
  * them multiple times is not too expensive.
@@ -343,7 +354,7 @@ char* format_seconds(int seconds){
     return fmt;
 }
 
-static inline void h_length_update(void *_hash, int key){
+static inline void h_update_int2long(void *_hash, int key){
     
     khash_t(int2long) *hash = (khash_t(int2long)*)_hash;
     
@@ -380,11 +391,27 @@ struct int_count * sort_int_table(void *_hash){
     return len_counts;
 }
 
-void flush_results(FILE *fout, struct results results){
+float mean_reads_per_channel(void *_hash){
+    
+    khash_t(int2long) *hash = (khash_t(int2long)*)_hash;
 
+    int n_channels = 0;
+    long n_reads = 0;
+    khiter_t k;
+    for (k = kh_begin(hash); k != kh_end(hash); ++k) {
+        if (kh_exist(hash, k)) {
+            n_channels++;
+            n_reads += kh_value(hash, k);
+        }
+    }
+    return (float)n_reads / n_channels;
+}
+
+void flush_results(FILE *fout, struct results results){
+    
     struct int_count *len_counts;
     len_counts = sort_int_table(results.h_length); 
-
+    
     int n_lens = kh_size(results.h_length);
     
     int nnx = 0;
@@ -423,6 +450,13 @@ void flush_results(FILE *fout, struct results results){
         fprintf(fout, "N%-5d             %d%s\n", results.nx[nnx].N, results.nx[nnx].length, cmt);
         nnx++;
     }
+
+    int ont_n_channels = kh_size(results.h_ont_channel);
+    if(ont_n_channels) {
+        fprintf(fout, "ont_n_channels     %d\n", ont_n_channels);
+        fprintf(fout, "ont_mean_reads_ch  %.2f\n", mean_reads_per_channel(results.h_ont_channel));
+    }
+
     fprintf(fout, "A                  %.2f%%\n", 
             (float) 100 * (results.nt_counter['A'] + results.nt_counter['a']) / n_bases);
     fprintf(fout, "T                  %.2f%%\n", 
@@ -440,5 +474,6 @@ void flush_results(FILE *fout, struct results results){
     free(results.nx);        
     free(results.filename);
     kh_destroy_int2long(results.h_length);
+    kh_destroy_int2long(results.h_ont_channel);
 }
 #endif

@@ -43,8 +43,18 @@ int scan_file(char *infile, long n_stop, struct results *results){
     kseq_t *seq;
     int l;
 
+    int is_ont = 0; 
     seq = kseq_init(fh);
     while ((l = kseq_read(seq)) >= 0) {
+
+        if(results->n_seq == 0){
+            is_ont = ont_channel(seq->comment.s);
+        }
+        if(is_ont){
+            int ch = ont_channel(seq->comment.s);
+            h_update_int2long(results->h_ont_channel, ch);
+        }
+
         results->n_seq += 1;
         int seq_len = strlen(seq->seq.s);
         if(results->n_seq % 1000000 == 0){
@@ -57,7 +67,7 @@ int scan_file(char *infile, long n_stop, struct results *results){
             results->sum_read_quality += mean_quality(seq->qual.s);
         }
        
-        h_length_update(results->h_length, seq_len);
+        h_update_int2long(results->h_length, seq_len);
 
         if(n_stop > 0 && results->n_seq >= n_stop){
             break;
