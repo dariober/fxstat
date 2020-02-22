@@ -224,7 +224,7 @@ class Fxstat(unittest.TestCase):
         self.valgrind(stderr.decode())
 
     def testCompileWithoutWarnings(self):
-        p= sp.Popen('gcc -O3 -Wall ../../src/fxstat.c -lz -o test_fxstat',
+        p= sp.Popen('gcc -O3 -Wall ../../src/fxstat.c -lz -lm -o test_fxstat',
                 shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
         stdout, stderr= p.communicate()
         self.assertEqual('', stderr.decode())
@@ -321,7 +321,7 @@ if __name__ == '__main__':
     os.makedirs('out')
     os.chdir('out') # NB we are in 'out'
 
-    p= sp.Popen('gcc -fprofile-arcs -ftest-coverage -g ../../src/fxstat.c -lz -o fxstat',
+    p= sp.Popen('gcc -fprofile-arcs -ftest-coverage -g ../../src/fxstat.c -lz -lm -o fxstat',
             shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
     stdout, stderr= p.communicate()
     if p.returncode != 0:

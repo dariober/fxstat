@@ -43,16 +43,24 @@ int scan_file(char *infile, long n_stop, struct results *results){
     kseq_t *seq;
     int l;
 
-    int is_ont = 0; 
+    int is_ont = -1; 
     seq = kseq_init(fh);
     while ((l = kseq_read(seq)) >= 0) {
-
-        if(results->n_seq == 0){
+        
+        if(is_ont == -1){
             is_ont = ont_channel(seq->comment.s);
         }
         if(is_ont){
             int ch = ont_channel(seq->comment.s);
             h_update_int2long(results->h_ont_channel, ch);
+
+            time_t t = ont_start_time(seq->comment.s);
+            if(results->ont_min_time == 0 || t < results->ont_min_time){
+                results->ont_min_time = t;
+            }
+            if(t > results->ont_max_time){
+                results->ont_max_time = t;
+            }
         }
 
         results->n_seq += 1;
@@ -89,7 +97,6 @@ int scan_file(char *infile, long n_stop, struct results *results){
 
 int main(int argc, char *argv[])
 {
-
     time_t t0 = time(NULL);
 
     struct args args = argparser(argc, &argv);

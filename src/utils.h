@@ -1,4 +1,5 @@
 #define _XOPEN_SOURCE 500
+#include <math.h>
 #include <stdio.h>
 #include <ctype.h> 
 #include <stdlib.h>
@@ -31,6 +32,8 @@ struct results {
     float sum_read_quality;
     struct Nx *nx;
     long nt_counter[NCHARS];
+    time_t ont_min_time;
+    time_t ont_max_time;
     khash_t(int2long) *h_length; // Hash table with int key for read length and
                                  // long value for count of reads with that length
     khash_t(int2long) *h_ont_channel; // key:ont_channel value: read count
@@ -57,6 +60,8 @@ struct results init_results(int nx_ints[]){
     
     results.h_length = kh_init(int2long);
     results.h_ont_channel = kh_init(int2long);
+    results.ont_min_time = 0;
+    results.ont_max_time = 0;
     return results;
 }
 
@@ -226,6 +231,32 @@ int ont_channel(char *comment){
     } else {
         return 0;
     }
+}
+
+time_t ont_start_time(char *comment){
+    if(comment == NULL){
+        fprintf(stderr, "Read comment is empty\n");    
+        exit(1);
+    }
+    char *st = strstr(comment, " start_time=");
+    if(!st){
+        fprintf(stderr, "Cannot find start_time in comment %s\n", comment);    
+        exit(1);
+    }
+    long len = strlen(st);
+    char start_time[25]= {0};
+    for(int i = 12; i < len; i++){
+        char c = *(st + i);
+        if(c == ' '){
+            break; // End of value string
+        }
+        start_time[i-12] = c;
+    }
+    struct tm tm;
+    memset(&tm, 0, sizeof(struct tm));
+    strptime(start_time, "%FT%T%z", &tm);
+    time_t t = mktime(&tm);
+    return t;
 }
 
 /* Get the Nx value (e.g. the N50) of the sequence length table len_counts We
@@ -407,6 +438,21 @@ float mean_reads_per_channel(void *_hash){
     return (float)n_reads / n_channels;
 }
 
+float sd_reads_per_channel(void *_hash){
+    
+    khash_t(int2long) *hash = (khash_t(int2long)*)_hash;
+    float mu = mean_reads_per_channel(hash);
+    khiter_t k;
+    float ss = 0;
+    for (k = kh_begin(hash); k != kh_end(hash); ++k) {
+        if (kh_exist(hash, k)) {
+            int n_reads = kh_value(hash, k);
+            ss += pow(n_reads - mu, 2);
+        }
+    }
+    return sqrt(ss/(kh_size(hash) - 1));
+}
+
 void flush_results(FILE *fout, struct results results){
     
     struct int_count *len_counts;
@@ -452,9 +498,15 @@ void flush_results(FILE *fout, struct results results){
     }
 
     int ont_n_channels = kh_size(results.h_ont_channel);
+    int time_span_sec = round(difftime(results.ont_max_time, results.ont_min_time));
     if(ont_n_channels) {
+        float mu = mean_reads_per_channel(results.h_ont_channel);
+        float sd = sd_reads_per_channel(results.h_ont_channel);
+        fprintf(fout, "ont_time_span      %d  # %s (HH:MM:SS) \n", time_span_sec, format_seconds(time_span_sec));
         fprintf(fout, "ont_n_channels     %d\n", ont_n_channels);
-        fprintf(fout, "ont_mean_reads_ch  %.2f\n", mean_reads_per_channel(results.h_ont_channel));
+        fprintf(fout, "ont_ch_mean_reads  %.2f\n", mu);
+        fprintf(fout, "ont_ch_sd_reads    %.2f\n", sd);
+        fprintf(fout, "ont_ch_dispersion  %.2f  # ~1 if channels are equally active\n", pow(sd, 2)/mu);
     }
 
     fprintf(fout, "A                  %.2f%%\n", 
