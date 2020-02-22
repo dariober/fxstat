@@ -506,7 +506,7 @@ void flush_results(FILE *fout, struct results results){
         fprintf(fout, "ont_n_channels     %d\n", ont_n_channels);
         fprintf(fout, "ont_ch_mean_reads  %.2f\n", mu);
         fprintf(fout, "ont_ch_sd_reads    %.2f\n", sd);
-        fprintf(fout, "ont_ch_dispersion  %.2f  # ~1 if channels are equally active\n", pow(sd, 2)/mu);
+        fprintf(fout, "ont_ch_dispersion  %.2f  # var/mean ~ 1 if channels were equally active\n", pow(sd, 2)/mu);
     }
 
     fprintf(fout, "A                  %.2f%%\n", 

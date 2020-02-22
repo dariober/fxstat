@@ -21,7 +21,7 @@ Assuming you are in the root directory of this project (i.e. where this README
 file is), compile the fxstat executable with:
 
 ```
-gcc -O3 -Wall -g src/fxstat.c -lz -o fxstat
+gcc -O3 -Wall -g src/fxstat.c -lz -lm -o fxstat
 ```
 
 Then move the `fxstat` executable to a directory of your choice like `$HOME/bin/`.

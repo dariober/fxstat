@@ -14,7 +14,7 @@ struct args {
 };
 
 // Default arguments
-// We need the args object to be global becouse we pass args.infile to nftw
+// We need the args object to be global because we pass args.infile to nftw
 // function
 struct args args ={
     .version = "0.1.0",

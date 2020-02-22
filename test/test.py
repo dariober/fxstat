@@ -298,8 +298,8 @@ class Fxstat(unittest.TestCase):
         stdout, stderr= p.communicate()
         self.assertEqual(0, p.returncode)
         self.valgrind(stderr.decode())
-        self.assertEqual(7, stdout.decode().count('['));
-        self.assertTrue('n_files: 7' in stdout.decode());
+        self.assertEqual(9, stdout.decode().count('['));
+        self.assertTrue('n_files: 9' in stdout.decode());
         self.assertTrue('.txt' not in stdout.decode());
 
     def testFileNotfound(self):
@@ -308,6 +308,26 @@ class Fxstat(unittest.TestCase):
         stdout, stderr= p.communicate()
         self.assertEqual(1, p.returncode)
         self.assertTrue("Invalid input file" in stderr.decode());
+
+    def testOntStats(self):
+        p= sp.Popen('valgrind ./fxstat ../data/ont.fq',
+                shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdout, stderr= p.communicate()
+        self.valgrind(stderr.decode())
+
+        self.assertTrue(re.search('ont_time_span +203', stdout.decode()))
+        self.assertTrue('00:03:23' in stdout.decode())
+
+        self.assertTrue(re.search('ont_n_channels +10', stdout.decode()))
+        self.assertTrue(re.search('ont_ch_mean_reads +1.80', stdout.decode()))
+        self.assertTrue(re.search('ont_ch_sd_reads +1.03', stdout.decode()))
+        self.assertTrue(re.search('ont_ch_dispersion +0.59', stdout.decode()))
+
+        p= sp.Popen('valgrind ./fxstat -p ../data/53oxa1_fast_nano.fq ../data/ont.fq',
+                shell=True, stdout= sp.PIPE, stderr= sp.PIPE)
+        stdout, stderr= p.communicate()
+        self.valgrind(stderr.decode())
+        self.assertTrue(re.search('ont_n_channels +187', stdout.decode()))
 
     def testUnrecognizedInputError(self):
         pass
